@@ -36,7 +36,7 @@ sbatch evaluate_and_upload.slurm
 ### Model data
 `./meta`: Meta data for the checkpoints. \
 `./output`: Converted models in [Diffusers](https://huggingface.co/docs/diffusers/index) format. \
-`./download`: Checkpoint cache downloaded from [Civitai](https://civitai.com/). \
+`./download`: Checkpoint cache downloaded from [Civitai](https://civitai.com/).
 
 ### Prompts
 `./promptsets`: Prompts and other metadata for image generation
@@ -44,5 +44,5 @@ sbatch evaluate_and_upload.slurm
 ### Generated Images
 `./generated/train`: Images generated with all downloaded models using the latest `promptset_v*.csv`. \
 `./generated/val`: Images generated with experimental prompts using `promptset_e*.csv`. \
-Technically speaking, these are not real train and validation splits. Here it's just for convenience when loading with huggingface datasets
+Technically speaking, these are not real train and validation splits. Here I use this file structure just for convenience when loading with huggingface datasets
 
