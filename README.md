@@ -30,10 +30,18 @@ or run with sbatch
 sbatch evaluate_and_upload.slurm
 ```
 
+## Linked hugginface repo
+### Datasets
+[ModelCofferRoster](https://huggingface.co/datasets/NYUSHPRP/ModelCofferRoster) \
+[ModelCofferPromptbook](https://huggingface.co/datasets/NYUSHPRP/ModelCofferPromptBook) \
+[ModelCofferMetadata](https://huggingface.co/datasets/NYUSHPRP/ModelCofferMetadata)
+
+### Space
+[ModelCofferGallery](https://huggingface.co/spaces/NYUSHPRP/ModelCofferGallery)
+
 
 ## Files
 `roster.csv`: records models downloaded from civitai. Contains tag,model_name,model_id,modelVersion_name,modelVersion_id,modelVersion_url,modelVersion_trainedWords,model_download_count
-
 
 ## Directories
 ### Model data
@@ -44,7 +52,7 @@ sbatch evaluate_and_upload.slurm
 ### Prompts
 `./promptsets`: Prompts and other metadata for image generation
 
-### Generated Images
+### Generated images
 `./generated/train`: Images generated with all downloaded models using the latest `promptset_v*.csv`. \
 `./generated/val`: Images generated with experimental prompts using `promptset_e*.csv`. \
 Technically speaking, these are not real train and validation splits. Here I use this file structure just for convenience when loading with huggingface datasets
