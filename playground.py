@@ -5,7 +5,7 @@ import json
 from pprint import pprint
 import uuid
 from datasets import Dataset, load_dataset
-from imgsim.similarity import ImagePairSimilarity
+# from imgsim.similarity import ImagePairSimilarity
 from tqdm import tqdm
 import torch
 
@@ -119,6 +119,11 @@ def read_similarity_checkpoint():
     print(similarity_dic)
 
 
+def remove_embedding():
+    promptbook = pd.read_csv('./generated/train/metadata.csv')
+    promptbook = promptbook.drop(columns=['image_embedding', 'prompt_embedding'])
+    promptbook.to_csv('./generated/train/metadata.csv')
+
 
 if __name__ == "__main__":
     # get_models(88546)
@@ -130,5 +135,6 @@ if __name__ == "__main__":
     # check_metadata()
     # list_similarity()
     # read_similarity_checkpoint()
-    alter_experiment_metadata()
+    # alter_experiment_metadata()
+    remove_embedding()
 
