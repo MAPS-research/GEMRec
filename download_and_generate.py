@@ -5,17 +5,21 @@ import json
 import argparse
 import os
 import pandas as pd
+import numpy as np
 from matplotlib import pyplot as plt
 import csv
 import uuid
 import torch
+import pickle
 
 from diffusers import DiffusionPipeline
 from diffusers import EulerDiscreteScheduler, EulerAncestralDiscreteScheduler, LMSDiscreteScheduler, DPMSolverMultistepScheduler
 
 CIVITAI2DIFFUSERS_DIR = os.path.join(os.getcwd(), 'PIG-misc', 'civitai2diffusers')
+DISTRIBUTION = '/scratch/hl3797/PIG-misc/popularity/subset.pkl'
+ALLMODELINFO = '/scratch/yg2709/ModelCoffer/everything/models'
 
-def fetch_new_models(fetch_tag=None, types=None, sort="Most Downloaded", period="AllTime", nsfw='false', limit=100, start_page=None, pick_version='latest', generate=True, split='train'):
+def fetch_new_models(promptbook, fetch_tag=None, types=None, sort="Most Downloaded", period="AllTime", nsfw='false', limit=100, start_page=None, pick_version='latest', generate=True, split='train'):
 
     endpoint = 'https://civitai.com/api/v1/' + 'models'
 
@@ -47,51 +51,78 @@ def fetch_new_models(fetch_tag=None, types=None, sort="Most Downloaded", period=
     # loop through models in the results
     for idx in range(len(items)):
         model_info = items[idx]
-        download_and_convert_diffusers(model_info = model_info, pick_version=pick_version, generate=generate, split=split)
+        download_and_convert_diffusers(promptbook = promptbook, model_info = model_info, pick_version=pick_version, generate=generate, split=split)
 
-    if page == 'all' and metadata['currentPage'] < metadata['totalPages']:
-        fetch_new_models(fetch_tag=fetch_tag, types=types, sort=sort, period=period, nsfw=nsfw, limit=limit, start_page=metadata['currentPage']+1, pick_version=pick_version, generate=generate, split=split)
+    # recurse if there exists the next page
+    if metadata['currentPage'] < metadata['totalPages']:
+        fetch_new_models(promptbook = promptbook, fetch_tag=fetch_tag, types=types, sort=sort, period=period, nsfw=nsfw, limit=limit, start_page=metadata['currentPage']+1, pick_version=pick_version, generate=generate, split=split)
 
 
-def fetch_specific_model(model_id, modelVersion_id=None, generate=True, split='train'):
+def fetch_specific_model(promptbook, model_id, modelVersion_id=None, generate=True, split='train'):
     endpoint = 'https://civitai.com/api/v1/' + f'models/{model_id}'
     model_info = requests.get(endpoint).json()
-    download_and_convert_diffusers(model_info=model_info, pick_version=modelVersion_id, generate=True, split=split)
+    download_and_convert_diffusers(promptbook=promptbook, model_info=model_info, pick_version=modelVersion_id, generate=generate, split=split)
 
     
-def download_and_convert_diffusers(model_info: dict, pick_version=None, generate=True, split='train'):
-    eliminate_ids = [91218, 90245, 90365, 3666, 3627]
+def download_and_convert_diffusers(promptbook, model_info: dict, pick_version=None, generate=True, split='train'):
+    eliminate_ids = [91218, 90245, 90365, 3666, 3627, 90406]
     # eliminate model 91218, which cause conversion error
     # eliminate model 90245, whose first file is actually lora
     # eliminate model 90365, which is an inpainting model and has different structure
     # eliminate model 3666, clip error during conversion
     # eliminate model 3627, conversion error (strange since it's a very popular model)
-    if not 'mode' in model_info and model_info['id'] not in eliminate_ids:  # mode is either archieve or taken down, which will lead to empty model page
-
+    # eliminate model 90406, wrong vae
+    if 'mode' in model_info or model_info['id'] in eliminate_ids:  # mode is either archieve or taken down, which will lead to empty model page
+        # print(f"model {model_info['id']} is either archieved or taken down, skip it")
+        print(f"model is either archieved or taken down, skip it")
+        raise ValueError()
+    else:
         modelVersions = model_info['modelVersions']
         # skip early access (earlyAccessTimeFrame: 1 means in early access only)
         modelVersions = [v for v in modelVersions if v['earlyAccessTimeFrame']==0]
         tags = model_info['tags']
         print('tags: ', tags)
-        assert isinstance(tags[0], str)
+        if len(tags) == 0:
+            print(f"model {model_info['id']} has no tags, skip it")
+            raise ValueError()
+        elif not isinstance(tags[0], str):
+            print(f"tags is not a list of string, but {tags}")
+            raise ValueError()
 
         if pick_version == 'latest':
+            print('==> pick_version: ', pick_version)
             modelVersions = [modelVersions[0]]
         elif isinstance(pick_version, int):
+            print('==> pick_version: ', pick_version)
             modelVersions = [v for v in modelVersions if v['id'] == pick_version]
-            # raise error is 
-            assert len(modelVersions) == 0, f"Version {pick_version} is not found in model {model_info['id']}"
+            if len(modelVersions) == 0:
+                print(f"Version {pick_version} is not found in model {model_info['id']}")
+                raise ValueError()
+            elif len(modelVersions) > 1:
+                print(f"Version {pick_version} is found multiple times in model {model_info['id']}")
+                raise ValueError()
 
+        print(f"==> model {model_info['id']} has versions {[v['id'] for v in modelVersions]}")
         for version in modelVersions:
+
+            # download and convert
+            local_repo_id = f"./output/{version['id']}"
+            modelVersion_id = version['id']
+            if not os.path.exists(local_repo_id) or len(os.listdir(local_repo_id)) == 0:
+                os.system(f"python3 {os.path.join(CIVITAI2DIFFUSERS_DIR, 'convert.py')} --model_version_id {modelVersion_id}")
+            else:
+                print(f"model {modelVersion_id} already exists, skip conversion")
+
+            # record the model and modelVersion into roster csv if no error occurs
             if len(version['trainedWords']) > 0:
                 trainedWords = [",".join(version['trainedWords'])]
             else:
                 trainedWords = [""]
             
-            # record the model and modelVersion into roster csv
             roster = pd.read_csv('roster.csv')
             for tag in tags:
                 if not ((roster['tag'] == tag) & (roster['model_id'] == model_info['id']) & (roster['modelVersion_id'] == version['id'])).any():
+                    print('model not in roster, add it')
                     with open('roster.csv', 'a') as f:
                         writer = csv.writer(f)
                         writer.writerow([
@@ -101,12 +132,12 @@ def download_and_convert_diffusers(model_info: dict, pick_version=None, generate
                     print('model already registed in the roster, update it with latest download count')
                     roster[(roster['tag'] == tag) & (roster['model_id'] == model_info['id']) & (roster['modelVersion_id'] == version['id'])].loc[:, 'model_download_count'] = model_info['stats']['downloadCount']       
 
-            local_repo_id = f"./output/{version['id']}"
-            modelVersion_id = version['id']
-            if not os.path.exists(local_repo_id):
-                os.system(f'python3 {os.path.join(CIVITAI2DIFFUSERS_DIR, 'convert.py')} --model_version_id {modelVersion_id}')
-            else:
-                print(f"model {modelVersion_id} already exists, skip conversion")
+            # local_repo_id = f"./output/{version['id']}"
+            # modelVersion_id = version['id']
+            # if not os.path.exists(local_repo_id):
+            #     os.system(f"python3 {os.path.join(CIVITAI2DIFFUSERS_DIR, 'convert.py')} --model_version_id {modelVersion_id}")
+            # else:
+            #     print(f"model {modelVersion_id} already exists, skip conversion")
 
             # generate images if necessary
             if generate:
@@ -131,7 +162,7 @@ def generate_single_image(pipeline, metadata, image_id, model_id, modelVersion_i
     # save to metadata.csv
     with open(f'generated/{split}/metadata.csv', 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([f'{image_id}.png', image_id, metadata['tag'], model_id, modelVersion_id, metadata['prompt_id'], metadata['size'], metadata['seed'], metadata['prompt'], metadata['negativePrompt'], metadata['cfgScale'], pipeline.scheduler.config._class_name])
+        writer.writerow([f'{image_id}.png', image_id, metadata['tag'], model_id, modelVersion_id, metadata['prompt_id'], metadata['size'], metadata['seed'], metadata['prompt'], metadata['negativePrompt'], metadata['cfgScale'], 'DPM++ Karras'])
 
     return image
 
@@ -151,10 +182,10 @@ def generate_images(promptbook, model_id, modelVersion_id, repo_id, split='train
     pipeline = DiffusionPipeline.from_pretrained(repo_id, safety_checker = None, custom_pipeline="lpw_stable_diffusion")
 
     # set custom scheduler (sampler)
-    pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
+    pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config, use_karras=True)
     pipeline.to("cuda")
-    print(pipeline.scheduler)
-    print("scheduler now being used: ", pipeline.scheduler.config._class_name) 
+    # print(pipeline.scheduler)
+    # print("scheduler now being used: ", pipeline.scheduler.config._class_name) 
 
     for prompt_idx in range(len(promptbook)):
         metadata = promptbook.iloc[[prompt_idx]].squeeze()
@@ -170,16 +201,14 @@ def generate_images(promptbook, model_id, modelVersion_id, repo_id, split='train
             print('image already generated, skip!')
 
 
-def remove_images(promptbook, modelVersion_id, split="train"):
+def remove_images(modelVersion_id, split="train"):
     # function for both remove and regenerate images
     generated = pd.read_csv(f'generated/{split}/metadata.csv')
     past_generations = generated[generated['modelVersion_id']==modelVersion_id]
-    model_id = past_generations['model_id'].unique()[0]
-    if len(past_generations) <= 0:
-        print('no image generated by model {model_id} version {model_Version_id} is found')
-        
-    else:
-        print('found generated images my model {model_id} version {model_Version_id} in the past')
+    try:
+        model_id = past_generations['model_id'].unique()[0]
+
+        print(f'found generated images my model {model_id} version {modelVersion_id} in the past')
         # remove generated images in local storage
         for (idx, past) in past_generations.iterrows():
             # print(idx, past['file_name'])
@@ -187,19 +216,167 @@ def remove_images(promptbook, modelVersion_id, split="train"):
             os.remove(local_image)
             generated.drop(index=idx, inplace=True)
             print(f"image {past['file_name']} is removed")
-    
-    generated.to_csv(f'./generated/{split}/metadata.csv', index=False)
 
-    return model_id, modelVersion_id
+        generated.to_csv(f'./generated/{split}/metadata.csv', index=False)
+        return model_id, modelVersion_id
+
+    except:
+        print(f'no image generated by model version {modelVersion_id} is found')
+        return None, modelVersion_id
+    
 
 
 def regenerate_images(promptbook, modelVersion_id, split="train"):
-    model_id, modelVersion_id = remove_images(promptbook, modelVersion_id, split)
+    model_id, modelVersion_id = remove_images(modelVersion_id, split)
 
     # generate new images
     repo_id = f"./output/{modelVersion_id}"
     generate_images(promptbook, model_id, modelVersion_id, repo_id, split)
 
+
+def popularity_distribution(promptbook, loop_cache=True, loop_candidate=True, split='train'):
+    # get models based on popularity distribution
+    print('==> Getting models based on popularity distribution')
+
+    with open(DISTRIBUTION, 'rb') as f:
+        distribution = pickle.load(f)
+    
+    all_model_info = os.listdir(ALLMODELINFO)
+
+    print('distribution loaded')
+    print('selected cached models: ', distribution['selected_dict'])
+    print('candidate models: ', distribution['candidate_dict'])
+    print('subset of distribution: ', distribution['dist_sub'])
+    print('num of candidates needed: ', distribution['todo_count_dict'])
+    print(len(distribution['candidate_dict']))
+    
+    if loop_cache:
+
+        total_cache = sum([len(modelVersion_ids) for bin, modelVersion_ids in distribution['selected_dict'].items()])
+        cache_pbar = tqdm(total=total_cache, desc='looping through models in cache')
+
+        # loop throught models in cache
+        for bin, modelVersion_ids in distribution['selected_dict'].items():
+            print(bin, modelVersion_ids)
+            for modelVersion_id in modelVersion_ids:
+                # convert numpy int64 to int
+                if isinstance(modelVersion_id, np.int64):
+                    modelVersion_id = modelVersion_id.item()
+                model_id = [info.split('_')[0] for info in all_model_info if str(modelVersion_id)+'.json'==info.split('_')[1]][0]
+                cache_pbar.set_description(f'generate with model {model_id} version {modelVersion_id} in bin {bin}')
+                # print(f'type of model_id: {type(model_id)}, type of modelVersion_id: {type(modelVersion_id)}')
+                fetch_specific_model(promptbook = promptbook, model_id = model_id, modelVersion_id = modelVersion_id, generate=True, split=split)
+                cache_pbar.update(1)
+    
+    if loop_candidate:
+        
+        # loop through models in candidate
+        popularity_distribution_candidate_download(promptbook=promptbook, bins=[b for b in range(len(distribution['candidate_dict']))], generate=True, split=split)
+
+
+def popularity_distribution_candidate_download(promptbook, bins, generate=False, split='train'):
+    print('==> Downloading candidate models based on popularity distribution')
+    with open(DISTRIBUTION, 'rb') as f:
+        distribution = pickle.load(f)
+    all_model_info = os.listdir(ALLMODELINFO)
+
+    total_todo = sum([distribution['todo_count_dict'][bin] for bin in bins])
+    pbar = tqdm(total=total_todo, desc=f'looping through models in candidate from bin {bins[0]} to {bins[-1]}')
+    for bin in bins:
+        modelVersion_ids = distribution['candidate_dict'][bin]
+        todo = distribution['todo_count_dict'][bin]
+
+        print(bin, modelVersion_ids)
+
+        append_models_from_candidates(promptbook=promptbook, pbar=pbar, candidate_ids=modelVersion_ids, model_num=todo, generate=generate, split=split)
+
+        # print(bin, modelVersion_ids)
+
+        # for modelVersion_id in modelVersion_ids:
+        #     # convert numpy int64 to int
+        #     if isinstance(modelVersion_id, np.int64):
+        #         modelVersion_id = modelVersion_id.item()
+
+        #     # break if all models in this bin are generated
+        #     if todo == 0:
+        #         break
+            
+        #     # find corresponding model_id
+        #     try:
+        #         model_id = [info.split('_')[0] for info in all_model_info if str(modelVersion_id)+'.json'==info.split('_')[1]][0]
+        #     except IndexError:
+        #         print("modelVersion_id not found in all_model_info, skip")
+
+        #     try:
+        #         fetch_specific_model(promptbook = promptbook, model_id = int(model_id), modelVersion_id = int(modelVersion_id), generate=generate, split=split)
+        #         todo -= 1
+        #         pbar.update(1)
+        #         pbar.set_description(f'cope with model {model_id} version {modelVersion_id} in bin {bin}, with {todo} todo models left')
+        #     except ValueError:
+        #         print(f"Error in Model {model_id} version {modelVersion_id}")
+        #         remove_images(modelVersion_id, split='train')
+        #     except EnvironmentError:
+        #         print(f"Local files for model {model_id} version {modelVersion_id} might be corrupted, remove them and try again")
+        #         os.system(f"rm -rf `find . -name {modelVersion_id}`")
+        #         try:
+        #             print(f"Try to fetch model {model_id} version {modelVersion_id} again")
+        #             fetch_specific_model(promptbook = promptbook, model_id = int(model_id), modelVersion_id = int(modelVersion_id), generate=generate, split=split)
+        #             todo -= 1
+        #             pbar.update(1)
+        #             pbar.set_description(f'cope with model {model_id} version {modelVersion_id} in bin {bin}, with {todo} todo models left')
+        #         except EnvironmentError:
+        #             print(f"Error in Model {model_id} version {modelVersion_id}, skip it")
+        #             remove_images(modelVersion_id, split='train')
+        #             # remove model from roster
+        #             roster = pd.read_csv('roster.csv')
+        #             roster = roster[roster['modelVersion_id']!=modelVersion_id]
+        #             roster.to_csv('roster.csv', index=False)
+        #             print(f"Model {model_id} version {modelVersion_id} removed from roster")
+
+
+def append_models_from_candidates(promptbook, pbar, candidate_ids, model_num, generate, split='train'):
+    
+    for modelVersion_id in candidate_ids:
+        # convert numpy int64 to int
+        if isinstance(modelVersion_id, np.int64):
+            modelVersion_id = modelVersion_id.item()
+
+        # break if all models needed in this bin are generated
+        if model_num == 0:
+            break
+        
+        # find corresponding model_id
+        try:
+            model_id = [info.split('_')[0] for info in all_model_info if str(modelVersion_id)+'.json'==info.split('_')[1]][0]
+        except IndexError:
+            print("modelVersion_id not found in all_model_info, skip")
+
+        try:
+            fetch_specific_model(promptbook = promptbook, model_id = int(model_id), modelVersion_id = int(modelVersion_id), generate=generate, split=split)
+            model_num -= 1
+            pbar.update(1)
+            pbar.set_description(f'cope with model {model_id} version {modelVersion_id} in bin {bin}, with {model_num} todo models left')
+        except ValueError:
+            print(f"Error in Model {model_id} version {modelVersion_id}")
+            remove_images(modelVersion_id, split=split)
+        except EnvironmentError:
+            print(f"Local files for model {model_id} version {modelVersion_id} might be corrupted, remove them and try again")
+            os.system(f"rm -rf `find . -name {modelVersion_id}`")
+            try:
+                print(f"Try to fetch model {model_id} version {modelVersion_id} again")
+                fetch_specific_model(promptbook = promptbook, model_id = int(model_id), modelVersion_id = int(modelVersion_id), generate=generate, split=split)
+                model_num -= 1
+                pbar.update(1)
+                pbar.set_description(f'cope with model {model_id} version {modelVersion_id} in bin {bin}, with {todo} todo models left')
+            except EnvironmentError:
+                print(f"Error in Model {model_id} version {modelVersion_id}, skip it")
+                remove_images(modelVersion_id, split=split)
+                # remove model from roster
+                roster = pd.read_csv('roster.csv')
+                roster = roster[roster['modelVersion_id']!=modelVersion_id]
+                roster.to_csv('roster.csv', index=False)
+                print(f"Model {model_id} version {modelVersion_id} removed from roster")
+    
 
 if __name__ == "__main__":
 
@@ -212,6 +389,10 @@ if __name__ == "__main__":
     parser.add_argument("-fn", "--fetch_new_models", action="store_true", default=False, help="Generate images by fetching from civitai")
     parser.add_argument("-f", "--fetch_specific_model", default=[None, None], nargs=2, help="Type in model id and model version id to fetch it from civitai")
     parser.add_argument("-s", "--split", default="train", type=str, help="Determine what promptset to use and which split to save generated images")
+    parser.add_argument("-p", "--popularity_distribution", default=None, type=str, help="Generate images with models in the popularity distribution, 'all' for both cache and candidate, 'cache' for cache only, 'candidate' for candidate only")
+    parser.add_argument("-pd", "--popularity_distribution_candidate_download", default=None, nargs='+', type=int, help="Download candidate models in the popularity distribution, type in the bins you want to download")
+    parser.add_argument("-ab", "--append_models_to_bin", default=[None, None], nargs=2, type=int, help="Append models to a bin, type in the bin number and the number of models you want to append")
+
     args = parser.parse_args()
 
     # create the roster csv
@@ -224,7 +405,7 @@ if __name__ == "__main__":
 
     # load the promptbook base one split
     if args.split == 'train':
-        promptbook = pd.read_csv('./promptsets/promptset_v2.csv')  # a global variable
+        promptbook = pd.read_csv('./promptsets/promptset_v5.csv')  # a global variable
     elif args.split == 'val':
         promptbook = pd.read_csv('./promptsets/promptset_e1.csv')
         promptbook = promptbook[promptbook['tag']=='abstract']
@@ -236,7 +417,7 @@ if __name__ == "__main__":
         raise Exception("Split can only be train, val or test")
 
     if args.remove is not None:
-        remove_images(promptbook, args.remove, args.split)
+        remove_images(args.remove, args.split)
 
     if args.regenerate is not None:
         regenerate_images(promptbook, args.regenerate, args.split)
@@ -244,9 +425,9 @@ if __name__ == "__main__":
     if args.gen_with_base_sd:
         # generate images with original stable diffusion
         print('Generate images with original stable diffusion')
-        sd_repos = [{'model_id': 1, 'modelVersion_id': 4, 'repo_id':'CompVis/stable-diffusion-v1-4'},
-                    {'model_id': 1, 'modelVersion_id': 5, 'repo_id':'runwayml/stable-diffusion-v1-5'},
-                    {'model_id': 2, 'modelVersion_id': 1, 'repo_id':'stabilityai/stable-diffusion-2-1'},
+        sd_repos = [{'model_id': 1000000, 'modelVersion_id': 1000004, 'repo_id':'CompVis/stable-diffusion-v1-4'},
+                    {'model_id': 1000000, 'modelVersion_id': 1000005, 'repo_id':'runwayml/stable-diffusion-v1-5'},
+                    {'model_id': 2000000, 'modelVersion_id': 2000001, 'repo_id':'stabilityai/stable-diffusion-2-1'},
         ]
         for sd_repo in tqdm(sd_repos):
             generate_images(promptbook=promptbook, model_id = sd_repo['model_id'], modelVersion_id = sd_repo['modelVersion_id'], repo_id = sd_repo['repo_id'], split=args.split)
@@ -266,9 +447,10 @@ if __name__ == "__main__":
             repo_id = f"./output/{modelVersion_id}"
             generate_images(promptbook=promptbook, model_id=model_id, modelVersion_id=modelVersion_id, repo_id=repo_id, split=args.split)
 
+
     if args.fetch_new_models:
         # generate images by fetching from civitai    
-        fetch_new_models(types=["Checkpoint"], sort="Most Downloaded", pick_version='latest', generate=True, split = args.split)
+        fetch_new_models(promptbook=promptbook, types=["Checkpoint"], sort="Most Downloaded", pick_version='latest', generate=True, split = args.split)
 
     if args.fetch_specific_model[0] is not None and args.fetch_specific_model[0] != 'None':
         # argparse automatically turns input type into string, while the real input could be either int, str, or None
@@ -284,4 +466,46 @@ if __name__ == "__main__":
             modelVersion_id = None
 
         print('fetching ', 'model id: ', model_id, 'modelVersion_id: ', modelVersion_id)
-        fetch_specific_model(model_id, modelVersion_id, args.split)
+        fetch_specific_model(promptbook=promptbook, model_id=model_id, modelVersion_id=modelVersion_id, generate=True, split=args.split)
+
+    if args.popularity_distribution is not None:
+        assert args.popularity_distribution in ['all', 'cache', 'candidate'], "popularity_distribution can only be 'all', 'cache', or 'candidate'"
+        if args.popularity_distribution == 'all':
+            popularity_distribution(promptbook, loop_cache=True, loop_candidate=True, split=args.split)
+        elif args.popularity_distribution == 'cache':
+            popularity_distribution(promptbook, loop_cache=True, loop_candidate=False, split=args.split)
+        elif args.popularity_distribution == 'candidate':
+            popularity_distribution(promptbook, loop_cache=False, loop_candidate=True, split=args.split)
+    
+    if args.popularity_distribution_candidate_download is not None:
+        bins = args.popularity_distribution_candidate_download
+        popularity_distribution_candidate_download(promptbook, bins, generate=False, split=args.split)
+
+    if args.append_models_to_bin[0] is not None and args.append_models_to_bin[1] is not None:
+        bin = args.append_models_to_bin[0]
+        model_num = args.append_models_to_bin[1]
+
+        with open(DISTRIBUTION, 'rb') as f:
+            distribution = pickle.load(f)
+
+        all_model_info = os.listdir(ALLMODELINFO)
+        roster = pd.read_csv('./roster.csv')
+
+        print(f'==> Appending {model_num} models to bin {bin}')
+
+        # get the models in the bin
+        candidate_models = distribution['candidate_dict'][bin]
+        candidate_left = []
+        for model in candidate_models:
+            if model not in roster['modelVersion_id'].unique().tolist():
+                candidate_left.append(model)
+
+        # quick fix for model 49998_54532
+        if 54532 in candidate_left:
+            candidate_left.remove(54532)
+
+        pbar = tqdm(total=model_num, desc=f'Appending {model_num} models to bin {bin}')
+
+        append_models_from_candidates(promptbook, pbar, candidate_left, model_num, generate=True, split=args.split)
+
+

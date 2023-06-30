@@ -7,7 +7,7 @@ from tqdm import tqdm
 import torch
 import pandas as pd
 import numpy as np
-from torchmetrics.functional.multimodal import clip_score
+from torchmetrics.multimodal import CLIPScore
 from functools import partial
 import logging
 import os
@@ -17,7 +17,7 @@ import argparse
 sys.path.append(os.path.join(os.getcwd(), 'PIG-misc', 'similarity'))
 import embedder
 
-def evaluate(promptbook, split='train'):
+def evaluate(split='train', brisque=False, clip=True):
     assert split in ['train', 'val', 'test'], 'the split does not exist'
 
     # create a temp file to store results, in case the runtime failes halfway
@@ -31,35 +31,59 @@ def evaluate(promptbook, split='train'):
     # replace nan in dataframe with None
     promptbook = promptbook.fillna(np.nan).replace([np.nan], [None])
 
-    # add evaluation columns
-    if 'brisque_score' not in promptbook.columns:
-        promptbook['brisque_score'] = None
-    if 'clip_score' not in promptbook.columns:
-        promptbook['clip_score'] = None
+    # add evaluation columns if not exist
+    if brisque:
+        if 'brisque_score' not in promptbook.columns:
+            promptbook['brisque_score'] = None
+        
+    if clip:
+        if 'clip_score' not in promptbook.columns:
+            promptbook['clip_score'] = None
 
-    clip_score_fn = partial(clip_score, model_name_or_path="openai/clip-vit-base-patch16")
+
+    metric = CLIPScore(model_name_or_path="openai/clip-vit-base-patch16")
     
     # evaluations
     for idx in tqdm(range(len(promptbook))):
         row = promptbook.loc[idx, :]
 
-        if row['clip_score'] is None or row['brisque_score'] is None:
+        if brisque:
+        
+            # calculate and store brisque score
+            if row['brisque_score'] is None:
+                b_score = round(float(brisque(image)), 4)
+                promptbook.loc[idx, 'brisque_score'] = b_score
 
-            image = Image.open(f"./generated/{split}/{row['file_name']}")
-            prompts = [row['prompt']]
-            image = transforms.ToTensor()(image)
-            image = torch.unsqueeze(image, dim=0)
+        if clip:
+            # calculate and store clip score
+            if row['clip_score'] is None:
+                with torch.no_grad():
+                    image = Image.open(f"./generated/{split}/{row['file_name']}")
+                    image = transforms.ToTensor()(image)
+                    image = torch.unsqueeze(image, dim=0)
 
-        # calculate and store clip score
-        # if row['clip_score'] is None:
-            c_score = round(float(clip_score_fn(image, prompts)), 4)
-            promptbook.loc[idx, 'clip_score'] = c_score
+                    prompts = [row['prompt']]
+                    original_prompt = row['prompt']
+                    
+                    # handle prompt length limit
+                    exceptions = {}
+                    if prompts[0] in exceptions.keys():
+                        prompts = [exceptions[prompts]]
+                    loop = True
+                    while loop:
+                        try:
+                            c_score = round(float(metric(image, prompts).detach()), 4)
+                            promptbook.loc[idx, 'clip_score'] = c_score
+                            loop = False
+                            if len(prompts[0]) < len(original_prompt):
+                                print(f'==> CLIP score calculated for {original_prompt} with length{len(original_prompt)}, truncated to {prompts[0]} with length {len(prompts[0])}')
+                                exceptions = {original_prompt: prompts[0]}
+                                print('==> Add to exceptions')
 
-        # calculate and store brisque score
-        # if row['brisque_score'] is None:
-            b_score = round(float(brisque(image)), 4)
-            promptbook.loc[idx, 'brisque_score'] = b_score
-
+                        except:
+                            logging.warning(f'==> CLIP score calculation failed for {row["prompt"]}, truncate and retry...')
+                            prompts = [row['prompt'][:-1]]
+                            
         # save a checker after 300 steps
         if idx % 300 == 0:
             promptbook.to_csv(f'./metadata_temp_{split}.csv', index=False)
@@ -141,23 +165,24 @@ def embed(split='train'):
 
 if __name__ == '__main__':
     
-    splits = ['train', 'val']
+    splits = ['train']
     for split in splits:
-        evaluate(split)
-        embed(split)
+        # evaluate(split = split)
+        # embed(split)
+        pass
 
-    dataset_promptbook = load_dataset('imagefolder', data_dir='./generated')
+    dataset_promptbook = load_dataset('imagefolder', data_dir='./generated', split='train')
     print(dataset_promptbook)
 
-    dataset_metadata = dataset_metadata = dataset_promptbook.remove_columns(['image', 'prompt_embedding', 'image_embedding'])
+    dataset_metadata = dataset_metadata = dataset_promptbook.remove_columns(['image'])
     print(dataset_metadata)
 
-    # dataset_promptbook.push_to_hub("NYUSHPRP/ModelCofferPromptBook")
-    # dataset_promptbook.push_to_hub("NYUSHPRP/ModelCofferMetadata")
+    dataset_promptbook.push_to_hub("NYUSHPRP/ModelCofferPromptBook")
+    dataset_metadata.push_to_hub("NYUSHPRP/ModelCofferMetadata")
 
 
-    # # upload roster to hf dataset
-    # roster = pd.read_csv('./roster.csv')
-    # roster = Dataset.from_pandas(roster)
-    # print(roster)
-    # roster.push_to_hub("NYUSHPRP/ModelCofferRoster", split='train')
+    # upload roster to hf dataset
+    roster = pd.read_csv('./roster.csv')
+    roster = Dataset.from_pandas(roster)
+    print(roster)
+    roster.push_to_hub("NYUSHPRP/ModelCofferRoster", split='train')
