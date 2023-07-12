@@ -290,50 +290,6 @@ def popularity_distribution_candidate_download(promptbook, bins, generate=False,
 
         append_models_from_candidates(promptbook=promptbook, pbar=pbar, candidate_ids=modelVersion_ids, model_num=todo, generate=generate, split=split)
 
-        # print(bin, modelVersion_ids)
-
-        # for modelVersion_id in modelVersion_ids:
-        #     # convert numpy int64 to int
-        #     if isinstance(modelVersion_id, np.int64):
-        #         modelVersion_id = modelVersion_id.item()
-
-        #     # break if all models in this bin are generated
-        #     if todo == 0:
-        #         break
-            
-        #     # find corresponding model_id
-        #     try:
-        #         model_id = [info.split('_')[0] for info in all_model_info if str(modelVersion_id)+'.json'==info.split('_')[1]][0]
-        #     except IndexError:
-        #         print("modelVersion_id not found in all_model_info, skip")
-
-        #     try:
-        #         fetch_specific_model(promptbook = promptbook, model_id = int(model_id), modelVersion_id = int(modelVersion_id), generate=generate, split=split)
-        #         todo -= 1
-        #         pbar.update(1)
-        #         pbar.set_description(f'cope with model {model_id} version {modelVersion_id} in bin {bin}, with {todo} todo models left')
-        #     except ValueError:
-        #         print(f"Error in Model {model_id} version {modelVersion_id}")
-        #         remove_images(modelVersion_id, split='train')
-        #     except EnvironmentError:
-        #         print(f"Local files for model {model_id} version {modelVersion_id} might be corrupted, remove them and try again")
-        #         os.system(f"rm -rf `find . -name {modelVersion_id}`")
-        #         try:
-        #             print(f"Try to fetch model {model_id} version {modelVersion_id} again")
-        #             fetch_specific_model(promptbook = promptbook, model_id = int(model_id), modelVersion_id = int(modelVersion_id), generate=generate, split=split)
-        #             todo -= 1
-        #             pbar.update(1)
-        #             pbar.set_description(f'cope with model {model_id} version {modelVersion_id} in bin {bin}, with {todo} todo models left')
-        #         except EnvironmentError:
-        #             print(f"Error in Model {model_id} version {modelVersion_id}, skip it")
-        #             remove_images(modelVersion_id, split='train')
-        #             # remove model from roster
-        #             roster = pd.read_csv('roster.csv')
-        #             roster = roster[roster['modelVersion_id']!=modelVersion_id]
-        #             roster.to_csv('roster.csv', index=False)
-        #             print(f"Model {model_id} version {modelVersion_id} removed from roster")
-
-
 def append_models_from_candidates(promptbook, pbar, candidate_ids, model_num, generate, split='train'):
     
     for modelVersion_id in candidate_ids:
@@ -376,6 +332,30 @@ def append_models_from_candidates(promptbook, pbar, candidate_ids, model_num, ge
                 roster = roster[roster['modelVersion_id']!=modelVersion_id]
                 roster.to_csv('roster.csv', index=False)
                 print(f"Model {model_id} version {modelVersion_id} removed from roster")
+
+def append_models_to_bin(promptbook, bin, model_num, generate=True, split=args.split):
+    with open(DISTRIBUTION, 'rb') as f:
+        distribution = pickle.load(f)
+
+    all_model_info = os.listdir(ALLMODELINFO)
+    roster = pd.read_csv('./roster.csv')
+
+    print(f'==> Appending {model_num} models to bin {bin}')
+
+    # get the models in the bin
+    candidate_models = distribution['candidate_dict'][bin]
+    candidate_left = []
+    for model in candidate_models:
+        if model not in roster['modelVersion_id'].unique().tolist():
+            candidate_left.append(model)
+
+    # quick fix for model 49998_54532
+    if 54532 in candidate_left:
+        candidate_left.remove(54532)
+
+    pbar = tqdm(total=model_num, desc=f'Appending {model_num} models to bin {bin}')
+
+    append_models_from_candidates(promptbook, pbar, candidate_left, model_num, generate, split)
     
 
 if __name__ == "__main__":
@@ -392,6 +372,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--popularity_distribution", default=None, type=str, help="Generate images with models in the popularity distribution, 'all' for both cache and candidate, 'cache' for cache only, 'candidate' for candidate only")
     parser.add_argument("-pd", "--popularity_distribution_candidate_download", default=None, nargs='+', type=int, help="Download candidate models in the popularity distribution, type in the bins you want to download")
     parser.add_argument("-ab", "--append_models_to_bin", default=[None, None], nargs=2, type=int, help="Append models to a bin, type in the bin number and the number of models you want to append")
+    parser.add_argument("-rp", "--replace_models", default=None, nargs='+', type=int, help="Replace models in the popularity distribution, type in the modelVersion ids you want to replace")
 
     args = parser.parse_args()
 
@@ -485,27 +466,43 @@ if __name__ == "__main__":
         bin = args.append_models_to_bin[0]
         model_num = args.append_models_to_bin[1]
 
+        append_models_to_bin(promptbook, bin, model_num, generate=True, split=args.split)
+
+    if args.replace_models:
+        print('to be replaced:', args.replace_models, type(args.replace_models))
         with open(DISTRIBUTION, 'rb') as f:
             distribution = pickle.load(f)
 
-        all_model_info = os.listdir(ALLMODELINFO)
-        roster = pd.read_csv('./roster.csv')
+        for model in tqdm(args.replace_models):
+            in_bin = None
+            # find the bin for the model to be replaced
+            # search for cache_dict
+            for bin in distribution['cache_dict']:
+                if model in distribution['cache_dict'][bin]:
+                    in_bin = bin
+                    break
+            
+            # search for candidate_dict
+            if not in_bin:
+                for bin in distribution['candidate_dict']:
+                    if model in distribution['candidate_dict'][bin]:
+                        in_bin = bin
+                        break
+            
+            # if the model is not in cache or candidate, skip
+            if not in_bin:
+                print(f'==> Model {model} is not in cache or candidate, skip')
+            
+            # add one model in the corresponding bin from candidate
+            append_models_to_bin(promptbook, in_bin, 1, generate=True, split=args.split)
 
-        print(f'==> Appending {model_num} models to bin {bin}')
+            # remove images generated by the model
+            remove_images(model, args.split)
+            print(f'==>Images generated by model {model} is removed from {args.split} set')
 
-        # get the models in the bin
-        candidate_models = distribution['candidate_dict'][bin]
-        candidate_left = []
-        for model in candidate_models:
-            if model not in roster['modelVersion_id'].unique().tolist():
-                candidate_left.append(model)
-
-        # quick fix for model 49998_54532
-        if 54532 in candidate_left:
-            candidate_left.remove(54532)
-
-        pbar = tqdm(total=model_num, desc=f'Appending {model_num} models to bin {bin}')
-
-        append_models_from_candidates(promptbook, pbar, candidate_left, model_num, generate=True, split=args.split)
-
+            # remove the model from roster
+            roster = pd.read_csv('./roster.csv')
+            roster = roster[roster['modelVersion_id'] != model]
+            roster.to_csv('./roster.csv', index=False)
+            print(f'==>Model {model} is removed from roster')
 

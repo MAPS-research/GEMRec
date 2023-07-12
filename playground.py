@@ -13,6 +13,14 @@ import pickle
 import os
 import shutil
 import re
+import math
+from torchmetrics.multimodal import CLIPScore
+from PIL import Image
+from torchvision import transforms
+import nltk
+from nltk.stem import PorterStemmer
+from nltk.stem.snowball import SnowballStemmer
+import seaborn as sns
 
 # roster = pd.read_csv('roster.csv')
 
@@ -398,6 +406,195 @@ def remove_civitai_images():
     images.to_csv('./generated/train/metadata.csv', index=False)
 
 
+def remove_image_not_in_meta():
+    local_images = os.listdir('./generated/train')
+    metadata = pd.read_csv('./generated/train/metadata.csv')
+    for image in local_images:
+        if image not in metadata['file_name'].tolist():
+            os.system(f"rm -rf ./generated/train/{image}")
+
+
+# util function
+def count2idx(count, BINS):
+    log_count = math.log10(count+1)
+    for i in range(len(BINS-1)):
+        # print(type(BINS[i]), type(BINS[i].item()), type(log_count))
+        # print(log_count, 'success')
+        if round(BINS[i].item(), 4) <= round(log_count, 4) <= round(BINS[i+1].item(), 4):
+            return i
+    # raise ValueError(f'count {count} not in bins')
+    return count
+
+
+def plot_distribution():
+    # load bins
+    with open('./PIG-misc/popularity/bins.pkl', 'rb') as f:
+        BINS = pickle.load(f)
+        print(f'\n==> bins: {BINS}')
+
+    model_infos = os.listdir('/scratch/yg2709/ModelCoffer/everything/models')
+    all_popularity_distribution = {}
+    modelVersion_ids = []
+    full_bins = {}
+    for model_info in model_infos:
+        with open(f'/scratch/yg2709/ModelCoffer/everything/models/{model_info}') as f:
+            info = json.load(f)
+
+        modelVersion_id = int(model_info.split('_')[1].split('.')[0])
+        modelVersion_ids.append(modelVersion_id)
+        popularity = info['stats']['downloadCount']
+        log_pop = math.log(popularity)
+        all_popularity_distribution[modelVersion_id] = log_pop
+        bin = count2idx(popularity, BINS)
+        full_bins[bin] = full_bins.get(bin, 0) + 1
+    
+    roster = pd.read_csv('./roster.csv')
+    roster = roster[roster['modelVersion_id'].isin(modelVersion_ids)]
+
+    # remove duplicate modelVersion_id
+    roster.drop_duplicates(subset=['modelVersion_id'], inplace=True)
+
+    roster.reset_index(drop=True, inplace=True)
+    
+    # alter download count in roster
+    for idx in roster.index:
+        modelVersion_id = roster.loc[idx, 'modelVersion_id']
+        roster.loc[idx, 'model_download_count'] = all_popularity_distribution[modelVersion_id]
+    
+
+    sample_popularity_distribution = []
+    sample_bis = {}
+    for idx in roster.index:
+        modelVersion_id = roster.loc[idx, 'modelVersion_id']
+        # popularity = roster.loc[idx, 'model_download_count']
+        # log_pop = math.log(popularity)
+        log_pop = all_popularity_distribution[modelVersion_id]
+        sample_popularity_distribution.append(log_pop)
+        bin = count2idx(popularity, BINS)
+        sample_bis[bin] = sample_bis.get(bin, 0) + 1
+    
+    # create two subplots
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.suptitle('Popularity Distribution')
+    
+    # ax1.bar(full_bins.keys(), full_bins.values(), color='b')
+    # ax1.set_title('Full Distribution')
+    # ax2.bar(sample_bis.keys(), sample_bis.values(), color='r')
+    # ax2.set_title('Sample Distribution')
+    mi = min([a for id, a in all_popularity_distribution.items()])
+    ma = max([a for id, a in all_popularity_distribution.items()])
+
+    ax1.hist([a for id, a in all_popularity_distribution.items()], bins=12, range=[mi, ma], rwidth=0.8)
+    ax1.set_title('Full Distribution')
+    ax2.hist(sample_popularity_distribution, bins=12, range=[mi, ma], rwidth=0.8)
+    ax2.set_title('Sample Distribution')
+
+    plt.savefig('./popularity_distribution.png')
+
+
+def test_clip_score():
+    metadata = pd.read_csv('./generated/train/metadata.csv')
+    metadata = metadata[:20]
+
+    metric = CLIPScore(model_name_or_path="openai/clip-vit-large-patch14").cuda()
+
+    clip_score_hm_all = compute_clip_score(metadata)
+    for idx in tqdm(range(len(metadata))):
+        clip_score_hm = clip_score_hm_all[idx]
+        # clip_score_hm = compute_clip_score(metadata[idx:idx+1])
+        clip_score_current = metadata.iloc[idx]['clip_score']
+
+        with torch.no_grad():
+            image = Image.open(f"./generated/train/{metadata.loc[idx, 'file_name']}")
+            image = transforms.ToTensor()(image)
+            image = torch.unsqueeze(image, dim=0).cuda()
+        
+            prompts =[metadata.loc[idx, 'prompt']]
+            clip_score = metric(image, prompts)
+
+        print(f'==> clip_score_hm: {clip_score_hm}, clip_score: {clip_score}, clip_score_current: {clip_score_current}')
+
+def compute_clip_score(promptbook, drop_negative=False):
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    BATCH_SIZE = len(promptbook)
+    DATASET_DIR = './generated/train'
+    # if 'clip_score' in promptbook.columns:
+    #     print('==> Skipping clip_score computation')
+    #     return
+    clip_scores = []
+    to_tensor = transforms.ToTensor()
+    # metric = CLIPScore(model_name_or_path='openai/clip-vit-base-patch16').to(DEVICE)
+    metric = CLIPScore(model_name_or_path='openai/clip-vit-large-patch14').to(DEVICE)
+    for i in tqdm(range(0, len(promptbook), BATCH_SIZE)):
+        images = []
+        prompts = list(promptbook.prompt.values[i:i+BATCH_SIZE])
+        for file_name in promptbook.file_name.values[i:i+BATCH_SIZE]:
+            images.append(to_tensor(Image.open(os.path.join(DATASET_DIR, file_name))))
+        with torch.no_grad():
+            x = metric.processor(text=prompts, images=images, return_tensors='pt', padding=True)
+            img_features = metric.model.get_image_features(x['pixel_values'].to(DEVICE))
+            img_features = img_features / img_features.norm(p=2, dim=-1, keepdim=True)
+            txt_features = metric.model.get_text_features(x['input_ids'].to(DEVICE), x['attention_mask'].to(DEVICE))
+            txt_features = txt_features / txt_features.norm(p=2, dim=-1, keepdim=True)
+            scores = 100 * (img_features * txt_features).sum(axis=-1).detach().cpu()
+        if drop_negative:
+            scores = torch.max(scores, torch.zeros_like(scores))
+        clip_scores += [round(s.item(), 4) for s in scores]
+    return np.asarray(clip_scores)
+
+
+def chech_tag_distribution():
+    # stemmer = PorterStemmer()
+    stemmer = SnowballStemmer("english")
+
+    stem = False
+
+    sampled_roster = pd.read_csv('./roster.csv')
+
+    if stem:
+        sampled_roster.loc[:, 'tag'] = sampled_roster['tag'].apply(lambda x: stemmer.stem(x))
+    tag_distribution = {}
+    for idx in sampled_roster.index:
+        tag = sampled_roster.loc[idx, 'tag']
+        tag_distribution[tag] = tag_distribution.get(tag, 0) + 1
+    tag_distribution = sorted(tag_distribution.items(), key=lambda x: x[1], reverse=True)
+    
+    palette1 = sns.color_palette("light:#79C", as_cmap=True)
+    palette2 = sns.color_palette("light:#5A9", as_cmap=True)
+
+    sns.set()
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, gridspec_kw={'hspace': 5}, figsize=(12, 5))
+
+    # ax1.pie([a for _, a in tag_distribution], labels=[t for t, _ in tag_distribution], autopct='%1.1f%%')
+    ax2.pie([a for _, a in tag_distribution[:10]], labels=[t for t, _ in tag_distribution[:10]], autopct='%1.1f%%', startangle=90, colors=palette1(np.linspace(0, 1, 10)))
+    ax2.set_title('our sampled subset')
+    # ax1.legend()
+
+    all_models = os.listdir('./everything/models')
+    full_tag_distribution = {}
+    for m in all_models:
+        with open(f'./everything/models/{m}') as f:
+            info = json.load(f)
+        # print(info['tags'])
+        for t in info['tags']:
+            if stem:
+                t = stemmer.stem(t)
+            full_tag_distribution[t] = full_tag_distribution.get(t, 0) + 1
+        
+    full_tag_distribution = sorted(full_tag_distribution.items(), key=lambda x: x[1], reverse=True)
+    
+    ax1.pie([a for _, a in full_tag_distribution[:10]], labels=[t for t, _ in full_tag_distribution[:10]], autopct='%1.1f%%', startangle=90, colors=palette2(np.linspace(0, 1, 10)))
+    ax1.set_title('full set of models from civitai')
+    # ax2.legend()
+
+
+    plt.savefig('./tag_distribution.png')
+
+
+
+
+
 
 if __name__ == "__main__":
     # get_models(88546)
@@ -414,11 +611,14 @@ if __name__ == "__main__":
     # remove_index_col()
     # move_extra_models()
     # move_unselected_models()
-    check_roster()
+    # check_roster()
     # remove_models([5829, 5960])
     # clear_up_roster()
     # check_promptset_v3()
     # append_models_to_bin(4, 1)
     # append_models_to_bin(5, 1)
     # remove_civitai_images()
-
+    # remove_image_not_in_meta()
+    # plot_distribution()
+    # test_clip_score()
+    chech_tag_distribution()

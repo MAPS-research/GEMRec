@@ -17,6 +17,35 @@ import argparse
 sys.path.append(os.path.join(os.getcwd(), 'PIG-misc', 'similarity'))
 import embedder
 
+BATCH_SIZE = 200
+DATASET_DIR = '/scratch/yg2709/ModelCoffer/generated/train'
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+def compute_clip_score(drop_negative=False):
+    promptbook = pd.read_csv('./generated/train/metadata.csv')
+    clip_scores = []
+    to_tensor = transforms.ToTensor()
+    # metric = CLIPScore(model_name_or_path='openai/clip-vit-base-patch16').to(DEVICE)
+    metric = CLIPScore(model_name_or_path='openai/clip-vit-large-patch14').to(DEVICE)
+    for i in tqdm(range(0, len(promptbook), BATCH_SIZE)):
+        images = []
+        prompts = list(promptbook.prompt.values[i:i+BATCH_SIZE])
+        for file_name in promptbook.file_name.values[i:i+BATCH_SIZE]:
+            images.append(to_tensor(Image.open(os.path.join(DATASET_DIR, file_name))))
+        with torch.no_grad():
+            x = metric.processor(text=prompts, images=images, return_tensors='pt', padding=True)
+            img_features = metric.model.get_image_features(x['pixel_values'].to(DEVICE))
+            img_features = img_features / img_features.norm(p=2, dim=-1, keepdim=True)
+            txt_features = metric.model.get_text_features(x['input_ids'].to(DEVICE), x['attention_mask'].to(DEVICE))
+            txt_features = txt_features / txt_features.norm(p=2, dim=-1, keepdim=True)
+            scores = 100 * (img_features * txt_features).sum(axis=-1).detach().cpu()
+        if drop_negative:
+            scores = torch.max(scores, torch.zeros_like(scores))
+        clip_scores += [round(s.item(), 4) for s in scores]
+    promptbook['clip_score'] = np.asarray(clip_scores)
+    promptbook.to_csv('./generated/train/metadata.csv', index=False)
+
+
 def evaluate(split='train', brisque=False, clip=True):
     assert split in ['train', 'val', 'test'], 'the split does not exist'
 
@@ -63,26 +92,10 @@ def evaluate(split='train', brisque=False, clip=True):
                     image = torch.unsqueeze(image, dim=0)
 
                     prompts = [row['prompt']]
-                    original_prompt = row['prompt']
-                    
-                    # handle prompt length limit
-                    exceptions = {}
-                    if prompts[0] in exceptions.keys():
-                        prompts = [exceptions[prompts]]
-                    loop = True
-                    while loop:
-                        try:
-                            c_score = round(float(metric(image, prompts).detach()), 4)
-                            promptbook.loc[idx, 'clip_score'] = c_score
-                            loop = False
-                            if len(prompts[0]) < len(original_prompt):
-                                print(f'==> CLIP score calculated for {original_prompt} with length{len(original_prompt)}, truncated to {prompts[0]} with length {len(prompts[0])}')
-                                exceptions = {original_prompt: prompts[0]}
-                                print('==> Add to exceptions')
 
-                        except:
-                            logging.warning(f'==> CLIP score calculation failed for {row["prompt"]}, truncate and retry...')
-                            prompts = [row['prompt'][:-1]]
+                    c_score = round(float(metric(image, prompts).detach()), 4)
+                    promptbook.loc[idx, 'clip_score'] = c_score
+
                             
         # save a checker after 300 steps
         if idx % 300 == 0:
@@ -169,6 +182,7 @@ if __name__ == '__main__':
     for split in splits:
         # evaluate(split = split)
         # embed(split)
+        # compute_clip_score()
         pass
 
     dataset_promptbook = load_dataset('imagefolder', data_dir='./generated', split='train')
