@@ -78,8 +78,8 @@ def check():
         prompt = promptset['prompt'][idx]
         negativePrompt = promptset['negativePrompt'][idx]
 
-        promptset.loc[idx, 'prompt'] = truncate(prompt, tokenizer)
-        promptset.loc[idx, 'negativePrompt'] = truncate(negativePrompt, tokenizer)
+        promptset.loc[idx, 'prompt'] = truncate(prompt, tokenizer).replace('.', '').replace('lora', '').replace('<', '').replace('>', '')
+        promptset.loc[idx, 'negativePrompt'] = truncate(negativePrompt, tokenizer).replace('.', '').replace('lora', '')
     
     promptset.to_csv('./promptset_v5.csv', index=False)
 
@@ -104,9 +104,9 @@ def compare():
 
 if __name__ == '__main__':
    # create promptset_v5 csv
-    promptset = pd.read_csv('./promptset_v4.csv')
-    promptset.to_csv('./promptset_v5.csv', index=False)
+    # promptset = pd.read_csv('./promptset_v4.csv')
+    # promptset.to_csv('./promptset_v5.csv', index=False)
 
-    fetch_new_prompts(total=10, nsfw='None')
+    # fetch_new_prompts(total=10, nsfw='None')
 
     check()

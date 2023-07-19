@@ -16,6 +16,7 @@ import argparse
 
 sys.path.append(os.path.join(os.getcwd(), 'PIG-misc', 'similarity'))
 import embedder
+import compute_metrics
 
 BATCH_SIZE = 200
 DATASET_DIR = '/scratch/yg2709/ModelCoffer/generated/train'
