@@ -27,6 +27,28 @@ def enhance_from_v5():
 
     df.to_csv('promptset_v6.csv', index = False)
 
+
+def sort_v6():
+    df = pd.read_csv('promptset_v6.csv')
+    df.sort_values(by=['tag', 'size', 'prompt'], inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    # rewrite prompt_id
+    df['prompt_id'] = df.index + 1
+
+    df.to_csv('promptset_v6.csv', index = False)
+
+
+def move_modifier():
+    df = pd.read_csv('promptset_v6.csv')
+    for idx in range(len(df)):
+        if df.loc[idx, 'prompt'].startswith("masterpiece, best quality, best shadow, intricate, "):
+            df.loc[idx, 'prompt'] = df.loc[idx, 'prompt'][len("masterpiece, best quality, best shadow, intricate, "):] + ", masterpiece, best quality, best shadow, intricate"
+
+    df.to_csv('promptset_v6.csv', index = False)
+
+
 if __name__ == "__main__":
-    enhance_from_v5()
+    # enhance_from_v5()
+    move_modifier()
+    sort_v6()
 
