@@ -46,9 +46,23 @@ def move_modifier():
 
     df.to_csv('promptset_v6.csv', index = False)
 
+def resize_prompts():
+    df = pd.read_csv('promptset_v6.csv')
+    for idx in range(len(df)):
+        width, height = df.loc[idx, 'size'].split('x')
+        if width < height:
+            df.loc[idx, 'size'] = '512x768'
+        elif width > height:
+            df.loc[idx, 'size'] = '768x512'
+        else:
+            df.loc[idx, 'size'] = '512x512'
+    
+    df.to_csv('promptset_v6.csv', index = False)
+        
 
 if __name__ == "__main__":
     # enhance_from_v5()
-    move_modifier()
+    # move_modifier()
+    resize_prompts()
     sort_v6()
 
