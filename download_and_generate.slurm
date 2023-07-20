@@ -5,12 +5,12 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=64GB
-#SBATCH --time=24:00:00
+#SBATCH --time=12:00:00
 #SBATCH --gres=gpu:v100:1
 
 # Singularity path
 ext3_path=/scratch/$USER/maps_env/overlay-25GB-500K.ext3
-sif_path=/scratch/$USER/maps_env/cuda11.6.124-cudnn8.4.0.27-devel-ubuntu20.04.4.sif
+sif_path=/scratch/$USER/maps_env/cuda11.8.86-cudnn8.7-devel-ubuntu22.04.2.sif
 
 # start running
 singularity exec --nv \
@@ -18,7 +18,7 @@ singularity exec --nv \
 ${sif_path} /bin/bash -c "
 source /ext3/env.sh
 cd /scratch/$USER/ModelCoffer
-python3 download_and_generate.py -rp 26000 66491 71997 95489 96195 > logs/download_and_generate.log
+python3 download_and_generate.py -sd -lr > logs/download_and_generate.log
 "
 
 

@@ -18,6 +18,8 @@ from controlnet_aux import OpenposeDetector
 from diffusers.utils import load_image
 
 from bs4 import BeautifulSoup
+import logging
+import warnings
 
 def fetch_new_models(promptbook, fetch_tag=None, types=None, sort="Most Downloaded", period="AllTime", nsfw='false', limit=100, start_page=None, pick_version='latest', generate=True):
 
@@ -75,7 +77,7 @@ def download_and_convert_diffusers(promptbook, model_info: dict, pick_version=No
     # eliminate model 67363, tagged futa
     if 'mode' in model_info or model_info['id'] in eliminate_ids:  # mode is either archieve or taken down, which will lead to empty model page
         # print(f"model {model_info['id']} is either archieved or taken down, skip it")
-        print(f"** Model is either archieved or taken down, skip it")
+        logger.warning(f"** Model is either archieved or taken down, skip it")
         raise ValueError()
     else:
         modelVersions = model_info['modelVersions']
@@ -84,10 +86,10 @@ def download_and_convert_diffusers(promptbook, model_info: dict, pick_version=No
         tags = model_info['tags']
         print('tags: ', tags)
         if len(tags) == 0:
-            print(f"** Model {model_info['id']} has no tags, skip it")
+            logger.warning(f"** Model {model_info['id']} has no tags, skip it")
             raise ValueError()
         elif not isinstance(tags[0], str):
-            print(f"** Tags is not a list of string, but {tags}")
+            logger.warning(f"** Tags is not a list of string, but {tags}")
             raise ValueError()
 
         if pick_version == 'latest':
@@ -95,13 +97,13 @@ def download_and_convert_diffusers(promptbook, model_info: dict, pick_version=No
         elif isinstance(pick_version, int):
             modelVersions = [v for v in modelVersions if v['id'] == pick_version]
             if len(modelVersions) == 0:
-                print(f"** Version {pick_version} is not found in model {model_info['id']}")
+                logger.warning(f"** Version {pick_version} is not found in model {model_info['id']}")
                 raise ValueError()
             elif len(modelVersions) > 1:
-                print(f"** Version {pick_version} is found multiple times in model {model_info['id']}")
+                logger.warning(f"** Version {pick_version} is found multiple times in model {model_info['id']}")
                 raise ValueError()
 
-        print(f"=> Picking version(s) {[v['id'] for v in modelVersions]} of model {model_info['id']}")
+        logger.info(f"=> Picking version(s) {[v['id'] for v in modelVersions]} of model {model_info['id']}")
         for version in modelVersions:
 
             # download and convert
@@ -110,7 +112,7 @@ def download_and_convert_diffusers(promptbook, model_info: dict, pick_version=No
             if not os.path.exists(local_repo_id) or len(os.listdir(local_repo_id)) == 0:
                 os.system(f"python3 {os.path.join(CIVITAI2DIFFUSERS_DIR, 'convert.py')} --model_version_id {modelVersion_id}")
             else:
-                print(f"## Model {modelVersion_id} already exists, skip conversion")
+                logger.info(f"## Model {modelVersion_id} already exists, skip conversion")
 
             # record the model and modelVersion into roster csv if no error occurs
             if len(version['trainedWords']) > 0:
@@ -121,19 +123,19 @@ def download_and_convert_diffusers(promptbook, model_info: dict, pick_version=No
             roster = pd.read_csv(ROSTER)
             for tag in tags:
                 if not ((roster['tag'] == tag) & (roster['model_id'] == model_info['id']) & (roster['modelVersion_id'] == version['id'])).any():
-                    print('## Model not in roster, add it')
+                    logger.info('## Model not in roster, add it')
                     with open(ROSTER, 'a') as f:
                         writer = csv.writer(f)
                         writer.writerow([
-                            tag, model_info['name'], model_info['id'], version['name'], version['id'], version['downloadUrl'], trainedWords, model_info['stats']['downloadCount']
+                            tag, model_info['name'], model_info['id'], version['name'], version['id'], version['downloadUrl'], trainedWords, model_info['stats']['downloadCount'], version['baseModel']
                             ])
                 else:
-                    print('## Model already registed in the roster, update it with latest download count')
+                    logger.info('## Model already registed in the roster, update it with latest download count')
                     roster[(roster['tag'] == tag) & (roster['model_id'] == model_info['id']) & (roster['modelVersion_id'] == version['id'])].loc[:, 'model_download_count'] = model_info['stats']['downloadCount']       
 
             # generate images if necessary
             if generate:
-                generate_images(promptbook=promptbook, model_id=model_info['id'], modelVersion_id=version['id'], repo_id=local_repo_id)  
+                generate_images(promptbook=promptbook, model_id=model_info['id'], modelVersion_id=version['id'], baseModel=version['baseModel'], repo_id=local_repo_id)  
 
 
 def generate_single_image(pipeline, metadata, image_id, model_id, modelVersion_id):
@@ -159,12 +161,16 @@ def generate_single_image(pipeline, metadata, image_id, model_id, modelVersion_i
     return image
 
 def generate_in_batch(pipeline, promptset, image_ids, model_id, modelVersion_id, ref_imgs=None):
+    
+
     width, height = promptset['size'].unique()[0].split('x')
     seeds = promptset['seed'].tolist()
     generators = [torch.Generator(device='cuda').manual_seed(seed) for seed in seeds]
 
-    print("** All cfgScale are set to 7 for now")
-    print(f"** Image size: {width}x{height}")
+    pipeline.set_progress_bar_config(leave=False, desc=f"==> Generating images of size {width}x{height}")
+
+    # logger.warning("** All cfgScale are set to 7 for now")
+    # logger.info(f"** Image size: {width}x{height}")
 
     if ref_imgs is None:
         images = pipeline(
@@ -199,7 +205,7 @@ def generate_in_batch(pipeline, promptset, image_ids, model_id, modelVersion_id,
     return images
 
 
-def generate_images(promptbook, model_id, modelVersion_id, repo_id, controlnet=False):
+def generate_images(promptbook, model_id, modelVersion_id, baseModel, repo_id):
 
     # create image directory
     if not os.path.exists(DUMP_DIR):
@@ -211,85 +217,100 @@ def generate_images(promptbook, model_id, modelVersion_id, repo_id, controlnet=F
             writer = csv.writer(f)
             writer.writerow(['file_name', 'image_id', 'tag', 'model_id', 'modelVersion_id', 'prompt_id', 'size', 'seed', 'prompt', 'negativePrompt', 'cfgScale', 'sampler', 'note'])
 
-    # load pipeline
-    if not controlnet:
-        pipeline = DiffusionPipeline.from_pretrained(repo_id, safety_checker = None, requires_safety_checker=False, custom_pipeline="lpw_stable_diffusion", torch_dtype=torch.float16)
-
-    else:
-        controlnet = ControlNetModel.from_pretrained("fusing/stable-diffusion-v1-5-controlnet-openpose", torch_dtype=torch.float16)
-        pipeline = StableDiffusionControlNetPipeline.from_pretrained(model_id, safety_checker = None, requires_safety_checker=False, controlnet=controlnet, torch_dtype=torch.float16)
-
-    # set custom scheduler (sampler)
-    pipeline.scheduler = EulerAncestralDiscreteScheduler.from_config(pipeline.scheduler.config)
-
-    # tricks for better performance
-    pipeline.enable_xformers_memory_efficient_attention()
-    pipeline.enable_model_cpu_offload()
-    pipeline.enable_vae_slicing()
-
-    # print(pipeline.scheduler)
-    # print("scheduler now being used: ", pipeline.scheduler.config._class_name) 
-
-    # # method1: generate images one by one
-    # for prompt_idx in range(len(promptbook)):
-    #     metadata = promptbook.iloc[[prompt_idx]].squeeze()
-
-    #     generated = pd.read_csv(f'generated/{SPLIT}/metadata.csv')
-
-    #     # generate if no duplicate exists
-    #     if not ((generated['prompt_id']==metadata['prompt_id']) & (generated['model_id']==model_id) & (generated['modelVersion_id']==modelVersion_id)).any():
-    #         image_id = uuid.uuid4().int
-    #         image = generate_single_image(pipeline, metadata, image_id, model_id, modelVersion_id)
-    #         image.save(f'generated/{SPLIT}/{image_id}.png')
-    #     else:
-    #         print('image already generated, skip!')
-
-    # method2: generate images in batch
     # remove already generated prompts
     generated = pd.read_csv(os.path.join(DUMP_DIR, 'metadata.csv'))
     promptset = promptbook[~promptbook['prompt_id'].isin(generated[generated['modelVersion_id']==modelVersion_id]['prompt_id'])]
-    print(f"=> Generating {len(promptset)} new images, {len(promptbook)-len(promptset)} images already generated")
+
+
+    # logger.info(f"=> Generating {len(promptset)} new images, {len(promptbook)-len(promptset)} images already generated")
+
+    if len(promptset) == 0:
+        return
+    
+    # temporary fix for future warning
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=FutureWarning)
+
+        # load pipeline
+        pipeline = DiffusionPipeline.from_pretrained(repo_id, safety_checker = None, requires_safety_checker=False, custom_pipeline="lpw_stable_diffusion", torch_dtype=torch.float16)
+        # set custom scheduler (sampler)
+        pipeline.scheduler = EulerAncestralDiscreteScheduler.from_config(pipeline.scheduler.config)
+
+        # tricks for better performance
+        pipeline.enable_xformers_memory_efficient_attention()
+        pipeline.enable_model_cpu_offload()
+        pipeline.enable_vae_slicing()
+
+    if CONTROLNET:
+
+        # temporary fix for future warning
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=FutureWarning)
+
+            if baseModel.startswith('SD 2'):
+                controlnet = ControlNetModel.from_pretrained("thibaud/controlnet-sd21-openpose-diffusers", torch_dtype=torch.float16)
+            else:
+                controlnet = ControlNetModel.from_pretrained("fusing/stable-diffusion-v1-5-controlnet-openpose", torch_dtype=torch.float16)
+            openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet")
+            ctrl_pipeline = StableDiffusionControlNetPipeline.from_pretrained(repo_id, safety_checker = None, requires_safety_checker=False, controlnet=controlnet, torch_dtype=torch.float16)
+
+            ctrl_pipeline.scheduler = EulerAncestralDiscreteScheduler.from_config(pipeline.scheduler.config)
+
+            # tricks for better performance
+            ctrl_pipeline.enable_xformers_memory_efficient_attention()
+            ctrl_pipeline.enable_model_cpu_offload()
+            ctrl_pipeline.enable_vae_slicing()
+
+
     # seperate promptset by size
     sizes = promptset['size'].unique()
+
+    pbar = tqdm(total=len(promptset), leave=False, desc=f"=> Generating {len(promptset)} new images, {len(promptbook)-len(promptset)} images already generated")
     for size in sizes:
         subset = promptset[promptset['size']==size]
         
-
-        if controlnet:
+        if CONTROLNET:
             # pick metadata with note as int only
-            civitaiset = subset[type(subset['note'])==np.int64]
+            civitaiset = subset[subset['note'].apply(lambda x: isinstance(x, str) and x.isdigit())]
+            # print(civitaiset)
 
-            # exclude civitaiset from subset
-            subset = subset[~subset['prompt_id'].isin(civitaiset['prompt_id'])]
+            if len(civitaiset) > 0:
+                # exclude civitaiset from subset
+                subset = subset[~subset['prompt_id'].isin(civitaiset['prompt_id'])]
 
-            ref_imgs = []
-            # download reference image from civitai
-            for idx in civitaiset.index:
-                civitai_id = civitaiset.loc[idx, 'note']
-                # check if image already downloaded
-                if not os.path.exists(os.path.join(CACHE_DIR, f"civitai_{civitai_id}_pose.png")):
-                    res = requests.get(f'https://civitai.com/images/{civitai_id}')
-                    assert res.status_code == 200
-                    soup = BeautifulSoup(res.text, 'html.parser')
-                    image_section = soup.find('div', {'class': 'mantine-12rlksp'})
-                    image_url = image_section.find('img')['src']
-                    image = load_image(image_url)
-                    pose = model(image)
-                    pose.save(os.path.join(CACHE_DIR, f"civitai_{civitai_id}_pose.png"))
-                    ref_imgs.append(pose)
-                else:
-                    ref_imgs.append(load_image(os.path.join(CACHE_DIR, f"civitai_{civitai_id}_pose.png")))
+                ref_imgs = []
+                # download reference image from civitai
+                for idx in civitaiset.index:
+                    civitai_id = civitaiset.loc[idx, 'note']
+                    # check if image already downloaded
+                    if not os.path.exists(os.path.join(CACHE_DIR, f"civitai_{civitai_id}_pose.png")):
+                        res = requests.get(f'https://civitai.com/images/{civitai_id}')
+                        assert res.status_code == 200
+                        soup = BeautifulSoup(res.text, 'html.parser')
+                        image_section = soup.find('div', {'class': 'mantine-12rlksp'})
+                        image_url = image_section.find('img')['src']
+                        image = load_image(image_url)
+                        pose = openpose(image)
+                        image.save(os.path.join(CACHE_DIR, f"civitai_{civitai_id}.png"))
+                        pose.save(os.path.join(CACHE_DIR, f"civitai_{civitai_id}_pose.png"))
+                        ref_imgs.append(pose)
+                    else:
+                        ref_imgs.append(load_image(os.path.join(CACHE_DIR, f"civitai_{civitai_id}_pose.png")))
             
-            image_ids = [uuid.uuid4().int for _ in range(len(civitaiset))]
-            images = generate_in_batch(pipeline, civitaiset, image_ids, model_id, modelVersion_id, ref_imgs)
+                image_ids = [uuid.uuid4().int for _ in range(len(civitaiset))]
+                images = generate_in_batch(ctrl_pipeline, civitaiset, image_ids, model_id, modelVersion_id, ref_imgs)
+                for i, image in enumerate(images):
+                    image.save(os.path.join(DUMP_DIR, f'{image_ids[i]}.png'))
+          
+                pbar.update(len(civitaiset))
+        
+        if len(subset) > 0:
+            image_ids = [uuid.uuid4().int for _ in range(len(subset))]
+            images = generate_in_batch(pipeline, subset, image_ids, model_id, modelVersion_id, None)
             for i, image in enumerate(images):
                 image.save(os.path.join(DUMP_DIR, f'{image_ids[i]}.png'))
-        
 
-        image_ids = [uuid.uuid4().int for _ in range(len(subset))]
-        images = generate_in_batch(pipeline, subset, image_ids, model_id, modelVersion_id, None)
-        for i, image in enumerate(images):
-            image.save(os.path.join(DUMP_DIR, f'{image_ids[i]}.png'))
+            pbar.update(len(subset))
 
 
 def remove_images(modelVersion_id, remove_from_roster=False):
@@ -302,10 +323,11 @@ def remove_images(modelVersion_id, remove_from_roster=False):
         roster = pd.read_csv(ROSTER)
         roster = roster[roster['modelVersion_id']!=modelVersion_id]
         roster.to_csv(ROSTER, index=False)
-        print(f"## Model version {modelVersion_id} no longer in roster")
+        logger.info(f"## Model version {modelVersion_id} no longer in roster")
 
     try:
         model_id = past_generations['model_id'].unique()[0]
+        base_model = past_generations[past_generations['model_id']==model_id]['base_model'].unique()[0]
 
         # remove generated images in local storage
         for (idx, past) in past_generations.iterrows():
@@ -314,28 +336,29 @@ def remove_images(modelVersion_id, remove_from_roster=False):
             os.remove(local_image)
             generated.drop(index=idx, inplace=True)
         
-        print(f"## {len(past_generations)} images generated by model version {modelVersion_id} are removed")
+        logger.info(f"## {len(past_generations)} images generated by model version {modelVersion_id} are removed")
 
         generated.to_csv(os.path.join(DUMP_DIR, 'metadata.csv'), index=False)
 
-        return model_id, modelVersion_id
+        return model_id, modelVersion_id, base_model
 
     except:
-        print(f'## No image generated by model version {modelVersion_id} is found')
-        return None, modelVersion_id
+        logger.info(f'## No image generated by model version {modelVersion_id} is found')
+        return None, modelVersion_id, None
 
 
 def regenerate_images(promptbook, modelVersion_id):
-    model_id, modelVersion_id = remove_images(modelVersion_id, remove_from_roster=False)
+    model_id, modelVersion_id, baseModel = remove_images(modelVersion_id, remove_from_roster=False)
 
-    # generate new images
-    repo_id = f"./output/{modelVersion_id}"
-    generate_images(promptbook, model_id, modelVersion_id, repo_id)
+    if model_id is not None:
+        # generate new images
+        repo_id = f"./output/{modelVersion_id}"
+        generate_images(promptbook, model_id, modelVersion_id, baseModel, repo_id)
 
 
 def popularity_distribution(promptbook, loop_cache=True, loop_candidate=True):
     # get models based on popularity distribution
-    print('=> Getting models based on popularity distribution')
+    logger.info('=> Getting models based on popularity distribution')
 
     with open(DISTRIBUTION, 'rb') as f:
         distribution = pickle.load(f)
@@ -374,7 +397,7 @@ def popularity_distribution(promptbook, loop_cache=True, loop_candidate=True):
 
 
 def popularity_distribution_candidate_download(promptbook, bins, generate=False):
-    print('==> Downloading candidate models based on popularity distribution')
+    logger.info('=> Downloading candidate models based on popularity distribution')
     with open(DISTRIBUTION, 'rb') as f:
         distribution = pickle.load(f)
     all_model_info = os.listdir(ALLMODELINFO)
@@ -417,10 +440,11 @@ def append_models_from_candidates(promptbook, all_model_info, pbar, candidate_id
                 break
             except (ValueError, EnvironmentError) as e:
                 if chance < chances-1:
-                    print(f"** {e} in Model {model_id} version {modelVersion_id}, remove local files and try again")
-                else:
-                    print(f"** {e} in Model {model_id} version {modelVersion_id}, skip it")
+                    logger.warning(f"** {e} in Model {model_id} version {modelVersion_id}, remove local files and try again")
                     
+                else:
+                    logger.warning(f"** {e} in Model {model_id} version {modelVersion_id}, skip it")
+
                 os.system(f"rm -rf `find . -name {modelVersion_id}`")
                 remove_images(modelVersion_id, remove_from_roster=True)
             
@@ -442,7 +466,7 @@ def append_models_to_bin(promptbook, bin, model_num, generate=True):
     all_model_info = os.listdir(ALLMODELINFO)
     roster = pd.read_csv(ROSTER)
 
-    print(f'==> Appending {model_num} models to bin {bin}')
+    logger.info(f'=> Appending {model_num} models to bin {bin}')
 
     # get the models in the bin
     candidate_models = distribution['candidate_dict'][bin]
@@ -461,12 +485,14 @@ def append_models_to_bin(promptbook, bin, model_num, generate=True):
     
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s - %(levelname)s - %(asctime)s ")
+    logger = logging.getLogger(__name__)
 
     # parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("-rm", "--remove", default=None, type=int, help="Type in the model version id to remove all images it generates")
     parser.add_argument("-rg", "--regenerate", default=None, type=int, help="Type in the model version id to remove all images it generates, and then generate with it again")
-    parser.add_argument("-gb", "--gen_with_base_sd", action="store_true", default=False, help="Generate images with original stable diffusion")
+    parser.add_argument("-sd", "--gen_with_base_sd", action="store_true", default=False, help="Generate images with original stable diffusion")
     parser.add_argument("-lr", "--loop_through_roster", action="store_true", default=False, help="Generate image with models in the roster")
     parser.add_argument("-fn", "--fetch_new_models", action="store_true", default=False, help="Generate images by fetching from civitai")
     parser.add_argument("-f", "--fetch_specific_model", default=[None, None], nargs=2, help="Type in model id and model version id to fetch it from civitai")
@@ -483,6 +509,7 @@ if __name__ == "__main__":
     DISTRIBUTION = '/scratch/hl3797/PIG-misc/popularity/subset.pkl'
     ALLMODELINFO = '/scratch/yg2709/ModelCoffer/everything/models'
     ROSTER = '/scratch/yg2709/ModelCoffer/roster.csv'
+    CONTROLNET = True
 
     # load the promptbook base one split
     SPLIT = args.split
@@ -506,7 +533,7 @@ if __name__ == "__main__":
         with open(ROSTER, 'w') as f:
             writer = csv.writer(f)
             writer.writerow([
-                'tag', 'model_name', 'model_id', 'modelVersion_name', 'modelVersion_id', 'modelVersion_url', 'modelVersion_trainedWords', 'model_download_count'
+                'tag', 'model_name', 'model_id', 'modelVersion_name', 'modelVersion_id', 'modelVersion_url', 'modelVersion_trainedWords', 'model_download_count', 'baseModel'
             ])
 
     if args.remove is not None:
@@ -517,28 +544,27 @@ if __name__ == "__main__":
 
     if args.gen_with_base_sd:
         # generate images with original stable diffusion
-        print('Generate images with original stable diffusion')
-        sd_repos = [{'model_id': 1000000, 'modelVersion_id': 1000004, 'repo_id':'CompVis/stable-diffusion-v1-4'},
-                    {'model_id': 1000000, 'modelVersion_id': 1000005, 'repo_id':'runwayml/stable-diffusion-v1-5'},
-                    {'model_id': 2000000, 'modelVersion_id': 2000001, 'repo_id':'stabilityai/stable-diffusion-2-1'},
+        sd_repos = [{'model_id': 1000000, 'modelVersion_id': 1000004, 'repo_id':'CompVis/stable-diffusion-v1-4', 'baseModel': 'SD 1.4'},
+                    {'model_id': 1000000, 'modelVersion_id': 1000005, 'repo_id':'runwayml/stable-diffusion-v1-5', 'baseModel': 'SD 1.5'},
+                    {'model_id': 2000000, 'modelVersion_id': 2000001, 'repo_id':'stabilityai/stable-diffusion-2-1', 'baseModel': 'SD 2.1'},
         ]
-        for sd_repo in tqdm(sd_repos):
-            generate_images(promptbook=promptbook, model_id = sd_repo['model_id'], modelVersion_id = sd_repo['modelVersion_id'], repo_id = sd_repo['repo_id'])
-
-        print('Original sd generation done')
+        
+        for sd_repo in tqdm(sd_repos, desc='Generating with original stable diffusion'):
+            generate_images(promptbook=promptbook, model_id = sd_repo['model_id'], modelVersion_id = sd_repo['modelVersion_id'], baseModel= sd_repo['baseModel'], repo_id = sd_repo['repo_id'])
 
 
     if args.loop_through_roster:
         # generate image with models in the roster
         roster = pd.read_csv(ROSTER)[3:]  # skip the first 3 original stable diffusions
 
-        models = roster[['model_id', 'modelVersion_id']].drop_duplicates(ignore_index=True)
+        models = roster[['model_id', 'modelVersion_id', 'baseModel']].drop_duplicates(ignore_index=True)
         for idx in tqdm(range(len(models)), desc='Generating with models in the roster'):
             model_data = models.iloc[idx]
             model_id = model_data['model_id']
             modelVersion_id = model_data['modelVersion_id']
+            baseModel = model_data['baseModel']
             repo_id = f"./output/{modelVersion_id}"
-            generate_images(promptbook=promptbook, model_id=model_id, modelVersion_id=modelVersion_id, repo_id=repo_id,)
+            generate_images(promptbook=promptbook, model_id=model_id, modelVersion_id=modelVersion_id, baseModel=baseModel, repo_id=repo_id)
 
 
     if args.fetch_new_models:
@@ -558,7 +584,7 @@ if __name__ == "__main__":
         else:
             modelVersion_id = None
 
-        print('## Fetching model id: ', model_id, 'modelVersion_id: ', modelVersion_id)
+        logger.debug('## Fetching model id: ', model_id, 'modelVersion_id: ', modelVersion_id)
         fetch_specific_model(promptbook=promptbook, model_id=model_id, modelVersion_id=modelVersion_id, generate=True)
 
     if args.popularity_distribution is not None:
@@ -590,7 +616,7 @@ if __name__ == "__main__":
                 tobe_replaced.append(model)
 
         if len(tobe_replaced) == 0:
-            print('## No model in the roster to be replaced')
+            logger.debug('## No model in the roster to be replaced')
             exit()
 
         with open(DISTRIBUTION, 'rb') as f:
@@ -614,7 +640,7 @@ if __name__ == "__main__":
             
             # if the model is not in cache or candidate, skip
             if not in_bin:
-                print(f'** Model {model} is not in cache or candidate, skip')
+                logger.warning(f'** Model {model} is not in cache or candidate, skip')
             
             else:
                 # add one model in the corresponding bin from candidate

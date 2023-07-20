@@ -1,7 +1,7 @@
 from datasets import Dataset, load_dataset
 import datasets
 from PIL import Image
-from piq import inception_score, brisque
+# from piq import inception_score, brisque
 from torchvision import transforms
 from tqdm import tqdm
 import torch
@@ -16,7 +16,6 @@ import argparse
 
 sys.path.append(os.path.join(os.getcwd(), 'PIG-misc', 'similarity'))
 import embedder
-import compute_metrics
 
 BATCH_SIZE = 200
 DATASET_DIR = '/scratch/yg2709/ModelCoffer/generated/train'

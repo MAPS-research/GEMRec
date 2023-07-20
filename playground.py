@@ -592,8 +592,42 @@ def chech_tag_distribution():
     plt.savefig('./tag_distribution.png')
 
 
+def check_promptset_v6():
+    promptset = pd.read_csv('./promptsets/promptset_v6.csv')
+    # get all possible 'note' datatype
+    datatypes = []
+    for idx in promptset.index:
+        data = promptset.loc[idx, 'note']
+        datatype = type(data)
+        if datatype not in datatypes:
+            datatypes.append(datatype)
+
+    print(datatypes)
 
 
+def add_version_to_roster():
+    roster = pd.read_csv('./roster.csv')
+    
+    model_infos = os.listdir('./everything/models')
+    model_infos = [m for m in model_infos if m.endswith('.json')]
+
+    for idx in tqdm(roster.index):
+        model_id = roster.loc[idx, 'model_id']
+        modelVersion_id = roster.loc[idx, 'modelVersion_id']
+
+        if modelVersion_id == 1000004:
+            roster.loc[idx, 'baseModel'] = 'SD 1.4'
+        elif modelVersion_id == 1000005:
+            roster.loc[idx, 'baseModel'] = 'SD 1.5'
+        elif modelVersion_id == 2000001:
+            roster.loc[idx, 'baseModel'] = 'SD 2.1'
+        else:
+            model_info = [m for m in model_infos if m.startswith(f'{model_id}_{modelVersion_id}')][0]
+            with open(f'./everything/models/{model_info}') as f:
+                info = json.load(f)
+            roster.loc[idx, 'baseModel'] = info['modelVersions'][0]['baseModel']
+    
+    roster.to_csv('./roster.csv', index=False)
 
 
 if __name__ == "__main__":
@@ -621,4 +655,6 @@ if __name__ == "__main__":
     # remove_image_not_in_meta()
     # plot_distribution()
     # test_clip_score()
-    chech_tag_distribution()
+    # chech_tag_distribution()
+    # check_promptset_v6()
+    add_version_to_roster()
