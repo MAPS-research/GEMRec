@@ -22,6 +22,10 @@ from nltk.stem import PorterStemmer
 from nltk.stem.snowball import SnowballStemmer
 import seaborn as sns
 
+# import sys
+# sys.path.append(os.path.join(os.getcwd(), 'PIG-misc'))
+# from evaluation import compute_metrics
+
 # roster = pd.read_csv('roster.csv')
 
 # tag = 'girl'
@@ -629,6 +633,70 @@ def add_version_to_roster():
     
     roster.to_csv('./roster.csv', index=False)
 
+def compute_clip_score_batch(promptbook, drop_negative=False):
+    BATCH_SIZE = 200
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    DATASET_DIR = '/scratch/yg2709/ModelCoffer/generated/train'
+
+    clip_scores = []
+    to_tensor = transforms.ToTensor()
+    # metric = CLIPScore(model_name_or_path='openai/clip-vit-base-patch16').to(DEVICE)
+    metric = CLIPScore(model_name_or_path='openai/clip-vit-large-patch14').to(DEVICE)
+    for i in tqdm(range(0, len(promptbook), BATCH_SIZE)):
+        images = []
+        prompts = list(promptbook.prompt.values[i:i+BATCH_SIZE])
+        for file_name in promptbook.file_name.values[i:i+BATCH_SIZE]:
+            images.append(to_tensor(Image.open(os.path.join(DATASET_DIR, file_name))))
+        with torch.no_grad():
+            x = metric.processor(text=prompts, images=images, return_tensors='pt', padding=True)
+            img_features = metric.model.get_image_features(x['pixel_values'].to(DEVICE))
+            img_features = img_features / img_features.norm(p=2, dim=-1, keepdim=True)
+            txt_features = metric.model.get_text_features(x['input_ids'].to(DEVICE), x['attention_mask'].to(DEVICE))
+            txt_features = txt_features / txt_features.norm(p=2, dim=-1, keepdim=True)
+            scores = 100 * (img_features * txt_features).sum(axis=-1).detach().cpu()
+        if drop_negative:
+            scores = torch.max(scores, torch.zeros_like(scores))
+        clip_scores += [round(s.item(), 4) for s in scores]
+    promptbook['clip_score'] = np.asarray(clip_scores)
+    # promptbook.to_csv('./generated/train/metadata.csv', index=False)
+    return promptbook
+
+def compute_clip_score_iter(promptbook, drop_negative=False):
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    DATASET_DIR = '/scratch/yg2709/ModelCoffer/generated/train'
+
+    metric = CLIPScore(model_name_or_path='openai/clip-vit-large-patch14').to(DEVICE)
+    for idx in tqdm(promptbook.index):
+        row = promptbook.loc[idx, :]
+        with torch.no_grad():
+            image = Image.open(f"{DATASET_DIR}/{row['file_name']}")
+            image = transforms.ToTensor()(image)
+            image = torch.unsqueeze(image, dim=0).cuda()
+        
+            prompts =[row['prompt']]
+            clip_score = round(float(metric(image, prompts).detach()), 4)
+        promptbook.loc[idx, 'clip_score'] = clip_score
+    return promptbook
+
+
+def test_clip_calculation():
+    # check torch version
+    print(torch.__version__)
+
+    promptbook_hmd = pd.read_csv('./generated/train/metadata.csv').sort_values(['prompt_id', 'modelVersion_id']).head(200)
+    # print(len(promptbook))
+    promptbook_new = promptbook_hmd.drop(columns=['clip_score'])
+    promptbook_batch = compute_clip_score_batch(promptbook_new)
+    promptbook_iter = compute_clip_score_iter(promptbook_new)
+
+    for idx in promptbook_new.index:
+        print('image id:', promptbook_batch.loc[idx, 'image_id'], 
+              'rc (batch):', promptbook_batch.loc[idx, 'clip_score'], 
+              'rc (iter):', promptbook_iter.loc[idx, 'clip_score'], 
+              'hmd:', promptbook_hmd.loc[idx, 'clip_score']
+              )
+
+
 
 if __name__ == "__main__":
     # get_models(88546)
@@ -657,4 +725,5 @@ if __name__ == "__main__":
     # test_clip_score()
     # chech_tag_distribution()
     # check_promptset_v6()
-    add_version_to_roster()
+    # add_version_to_roster()
+    test_clip_calculation()

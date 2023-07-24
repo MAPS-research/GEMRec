@@ -1,4 +1,6 @@
 import requests
+from bs4 import BeautifulSoup
+
 from pprint import pprint
 from tqdm import tqdm
 import json
@@ -6,7 +8,6 @@ import argparse
 import os
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
 import csv
 import uuid
 import torch
@@ -17,7 +18,6 @@ from diffusers import EulerDiscreteScheduler, EulerAncestralDiscreteScheduler, L
 from controlnet_aux import OpenposeDetector
 from diffusers.utils import load_image
 
-from bs4 import BeautifulSoup
 import logging
 import warnings
 
@@ -107,7 +107,7 @@ def download_and_convert_diffusers(promptbook, model_info: dict, pick_version=No
         for version in modelVersions:
 
             # download and convert
-            local_repo_id = f"./output/{version['id']}"
+            local_repo_id = os.path.join(MODEL_DIR, version['id'])
             modelVersion_id = version['id']
             if not os.path.exists(local_repo_id) or len(os.listdir(local_repo_id)) == 0:
                 os.system(f"python3 {os.path.join(CIVITAI2DIFFUSERS_DIR, 'convert.py')} --model_version_id {modelVersion_id}")
@@ -270,9 +270,10 @@ def generate_images(promptbook, model_id, modelVersion_id, baseModel, repo_id):
         subset = promptset[promptset['size']==size]
         
         if CONTROLNET:
+            os.makedirs(CACHE_DIR, exist_ok=True)
+
             # pick metadata with note as int only
             civitaiset = subset[subset['note'].apply(lambda x: isinstance(x, str) and x.isdigit())]
-            # print(civitaiset)
 
             if len(civitaiset) > 0:
                 # exclude civitaiset from subset
@@ -352,7 +353,7 @@ def regenerate_images(promptbook, modelVersion_id):
 
     if model_id is not None:
         # generate new images
-        repo_id = f"./output/{modelVersion_id}"
+        repo_id = os.path.join(MODEL_DIR, modelVersion_id)
         generate_images(promptbook, model_id, modelVersion_id, baseModel, repo_id)
 
 
@@ -490,40 +491,43 @@ if __name__ == "__main__":
 
     # parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("-rm", "--remove", default=None, type=int, help="Type in the model version id to remove all images it generates")
-    parser.add_argument("-rg", "--regenerate", default=None, type=int, help="Type in the model version id to remove all images it generates, and then generate with it again")
-    parser.add_argument("-sd", "--gen_with_base_sd", action="store_true", default=False, help="Generate images with original stable diffusion")
-    parser.add_argument("-lr", "--loop_through_roster", action="store_true", default=False, help="Generate image with models in the roster")
+    parser.add_argument("-s", "--split", default="train", type=str, help="Determine what promptset to use and which split to save generated images")
+    parser.add_argument("-c", "--controlnet", action="store_false", default=True, help="Use controlnet when generating images with prompts from civitai")
+
     parser.add_argument("-fn", "--fetch_new_models", action="store_true", default=False, help="Generate images by fetching from civitai")
     parser.add_argument("-f", "--fetch_specific_model", default=[None, None], nargs=2, help="Type in model id and model version id to fetch it from civitai")
-    parser.add_argument("-s", "--split", default="train", type=str, help="Determine what promptset to use and which split to save generated images")
+
     parser.add_argument("-p", "--popularity_distribution", default=None, type=str, help="Generate images with models in the popularity distribution, 'all' for both cache and candidate, 'cache' for cache only, 'candidate' for candidate only")
-    parser.add_argument("-pd", "--popularity_distribution_candidate_download", default=None, nargs='+', type=int, help="Download candidate models in the popularity distribution, type in the bins you want to download")
+    parser.add_argument("-pd", "--popularity_distribution_candidate_download", default=None, nargs='+', type=int, help="Download and convert candidate models in the popularity distribution without generating images, type in the bins you want to download")
     parser.add_argument("-ab", "--append_models_to_bin", default=[None, None], nargs=2, type=int, help="Append models to a bin, type in the bin number and the number of models you want to append")
     parser.add_argument("-rp", "--replace_models", default=None, nargs='+', type=int, help="Replace models in the popularity distribution, type in the modelVersion ids you want to replace")
+
+    parser.add_argument("-sd", "--gen_with_base_sd", action="store_true", default=False, help="Generate images with original stable diffusion")
+    parser.add_argument("-lr", "--loop_through_roster", action="store_true", default=False, help="Generate image with models in the roster")
+
+    parser.add_argument("-rm", "--remove", default=None, type=int, help="Type in the model version id to remove all images it generates")
+    parser.add_argument("-rg", "--regenerate", default=None, type=int, help="Type in the model version id to remove all images it generates, and then generate with it again")
 
     args = parser.parse_args()
 
     CIVITAI2DIFFUSERS_DIR = os.path.join(os.getcwd(), 'PIG-misc', 'civitai2diffusers')
     CACHE_DIR = os.path.join(os.getcwd(), 'tmp')
+    MODEL_DIR = os.path.join(os.getcwd(), 'output')
     DISTRIBUTION = '/scratch/hl3797/PIG-misc/popularity/subset.pkl'
     ALLMODELINFO = '/scratch/yg2709/ModelCoffer/everything/models'
     ROSTER = '/scratch/yg2709/ModelCoffer/roster.csv'
-    CONTROLNET = True
+
+    CONTROLNET = args.controlnet
 
     # load the promptbook base one split
     SPLIT = args.split
     if SPLIT == 'train':
         promptbook = pd.read_csv('./promptsets/promptset_v6.csv')  # a global variable
-    elif SPLIT == 'val':
-        promptbook = pd.read_csv('./promptsets/promptset_e1.csv')
-        promptbook = promptbook[promptbook['tag']=='abstract']
-        promptbook['negativePrompt'] = None
-        print('experiment promptset is loaded')
-    elif SPLIT == 'test':
-        promptbook == pd.read_csv('./promptsets/promptset_c1.csv')
+
+    # TODO: add other splits
+
     else:
-        raise Exception("Split can only be train, val or test")
+        raise Exception("Split can only be train")
 
     DUMP_DIR = os.path.join(os.getcwd(), 'generated', SPLIT)
 
@@ -563,7 +567,7 @@ if __name__ == "__main__":
             model_id = model_data['model_id']
             modelVersion_id = model_data['modelVersion_id']
             baseModel = model_data['baseModel']
-            repo_id = f"./output/{modelVersion_id}"
+            repo_id = os.path.join(MODEL_DIR, modelVersion_id)
             generate_images(promptbook=promptbook, model_id=model_id, modelVersion_id=modelVersion_id, baseModel=baseModel, repo_id=repo_id)
 
 

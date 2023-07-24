@@ -14,8 +14,8 @@ import os
 import sys
 import argparse
 
-sys.path.append(os.path.join(os.getcwd(), 'PIG-misc', 'similarity'))
-import embedder
+sys.path.append(os.path.join(os.getcwd(), 'PIG-misc'))
+from similarity import embedder
 
 BATCH_SIZE = 200
 DATASET_DIR = '/scratch/yg2709/ModelCoffer/generated/train'
@@ -179,11 +179,6 @@ def embed(split='train'):
 if __name__ == '__main__':
     
     splits = ['train']
-    for split in splits:
-        # evaluate(split = split)
-        # embed(split)
-        # compute_clip_score()
-        pass
 
     dataset_promptbook = load_dataset('imagefolder', data_dir='./generated', split='train')
     print(dataset_promptbook)
