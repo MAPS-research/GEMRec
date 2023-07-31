@@ -1,25 +1,23 @@
-import requests
-from bs4 import BeautifulSoup
-
-from pprint import pprint
-from tqdm import tqdm
-import json
 import argparse
-import os
-import pandas as pd
-import numpy as np
 import csv
-import uuid
-import torch
+import json
+import logging
+import os
 import pickle
+import uuid
+import warnings
 
+import requests
+import torch
+import numpy as np
+import pandas as pd
+from bs4 import BeautifulSoup
+from controlnet_aux import OpenposeDetector
 from diffusers import DiffusionPipeline, StableDiffusionControlNetPipeline, ControlNetModel
 from diffusers import EulerDiscreteScheduler, EulerAncestralDiscreteScheduler, LMSDiscreteScheduler, DPMSolverMultistepScheduler
-from controlnet_aux import OpenposeDetector
 from diffusers.utils import load_image
-
-import logging
-import warnings
+from pprint import pprint
+from tqdm import tqdm
 
 def fetch_new_models(promptbook, fetch_tag=None, types=None, sort="Most Downloaded", period="AllTime", nsfw='false', limit=100, start_page=None, pick_version='latest', generate=True):
 

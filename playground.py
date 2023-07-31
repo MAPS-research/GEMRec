@@ -697,6 +697,19 @@ def test_clip_calculation():
               )
 
 
+def merge_metadata():
+    crop = pd.read_csv('./generated/train/metadata_crop.csv')
+    resize = pd.read_csv('./generated/train/metadata_resize.csv')
+
+    merge_cols = [c for c in crop.columns.tolist() if c not in ['mcos_score', 'clip_score', 'norm_clip', 'norm_mcos']]
+
+    crop.rename(columns={'mcos_score': 'mcos_score_crop', 'clip_score': 'clip_score_crop', 'norm_clip': 'norm_clip_crop', 'norm_mcos': 'norm_mcos_crop'}, inplace=True)
+    resize.rename(columns={'mcos_score': 'mcos_score_resize', 'clip_score': 'clip_score_resize', 'norm_clip': 'norm_clip_resize', 'norm_mcos': 'norm_mcos_resize'}, inplace=True)
+
+    metadata = pd.merge(crop, resize, on=merge_cols, how='outer')
+    metadata.to_csv('./generated/train/metadata_merged.csv', index=False)
+    
+
 
 if __name__ == "__main__":
     # get_models(88546)
@@ -726,4 +739,5 @@ if __name__ == "__main__":
     # chech_tag_distribution()
     # check_promptset_v6()
     # add_version_to_roster()
-    test_clip_calculation()
+    # test_clip_calculation()
+    merge_metadata()
