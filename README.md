@@ -14,21 +14,22 @@ Clone PIG-misc under this `ModelCoffer` folder, which contains the scripts for c
 git clone https://github.com/MAPS-research/PIG-misc.git
 ```
 
-### Generate images
+### Download latest models from civitai and genrate images
 Fetch model from civitai or read local models, and generate images with metadatas in promptsets
 ```
 python3 download_and_generate.py --fn
 ```
 
-### Upload to huggingface
-Evaluate images and upload datasets to huggingface
+### Loop through models recorded in roster.csv and generate images
+This operation doesn't include stable diffusion base models, even if they are recorded in roster.csv
 ```
-python3 evaluate_and_upload.py
+python3 download_and_generate.py --lr 
 ```
-or run with sbatch
+To generate with stable diffusion base models as well as other downloaded models, use
 ```
-sbatch evaluate_and_upload.slurm
+python3 download_and_generate.py --sd --lr
 ```
+
 
 ## Linked hugginface repo
 ### Datasets
@@ -58,5 +59,6 @@ sbatch evaluate_and_upload.slurm
 
 ## TODO
 - [ ] Combine evaluation code from PIG-misc with this repo
+- [ ] Usage instructions for fetching models based on population distribution
 - [ ] Add more custom control for downloading
 - [ ] Better formatted logging output
