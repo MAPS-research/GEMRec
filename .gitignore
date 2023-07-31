@@ -19,3 +19,5 @@ legacy/
 
 # files
 *.safetensors
+playground.py 
+*.slurm
