@@ -508,7 +508,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    CIVITAI2DIFFUSERS_DIR = os.path.join(os.getcwd(), 'PIG-misc', 'civitai2diffusers')
+    CIVITAI2DIFFUSERS_DIR = os.path.join(os.getcwd(), 'utils', 'civitai2diffusers')
     CACHE_DIR = os.path.join(os.getcwd(), 'tmp')
     MODEL_DIR = os.path.join(os.getcwd(), 'output')
     DISTRIBUTION = '/scratch/hl3797/PIG-misc/popularity/subset.pkl'
