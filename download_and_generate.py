@@ -14,7 +14,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from controlnet_aux import OpenposeDetector
 from diffusers import DiffusionPipeline, StableDiffusionControlNetPipeline, ControlNetModel
-from diffusers import EulerDiscreteScheduler, EulerAncestralDiscreteScheduler, LMSDiscreteScheduler, DPMSolverMultistepScheduler
+from diffusers import EulerAncestralDiscreteScheduler, DPMSolverMultistepScheduler
 from diffusers.utils import load_image
 from pprint import pprint
 from tqdm import tqdm
@@ -446,17 +446,7 @@ def append_models_from_candidates(promptbook, all_model_info, pbar, candidate_id
 
                 os.system(f"rm -rf `find . -name {modelVersion_id}`")
                 remove_images(modelVersion_id, remove_from_roster=True)
-            
-                # try:
-                #     print(f"Try to fetch model {model_id} version {modelVersion_id} again")
-                #     fetch_specific_model(promptbook = promptbook, model_id = int(model_id), modelVersion_id = int(modelVersion_id), generate=generate)
-                #     model_num -= 1
-                #     pbar.update(1)
-                #     pbar.set_description(f'cope with model {model_id} version {modelVersion_id} in bin {bin}, with {model_num} todo models left')
-                # except EnvironmentError:
-                #     print(f"Error in Model {model_id} version {modelVersion_id}, skip it")
-                #     remove_images(modelVersion_id, remove_from_roster=True)
-
+ 
 
 def append_models_to_bin(promptbook, bin, model_num, generate=True):
     with open(DISTRIBUTION, 'rb') as f:
@@ -511,9 +501,9 @@ if __name__ == "__main__":
     CIVITAI2DIFFUSERS_DIR = os.path.join(os.getcwd(), 'utils', 'civitai2diffusers')
     CACHE_DIR = os.path.join(os.getcwd(), 'tmp')
     MODEL_DIR = os.path.join(os.getcwd(), 'output')
-    DISTRIBUTION = '/scratch/hl3797/PIG-misc/popularity/subset.pkl'
-    ALLMODELINFO = '/scratch/yg2709/ModelCoffer/everything/models'
-    ROSTER = '/scratch/yg2709/ModelCoffer/roster.csv'
+    DISTRIBUTION = os.path.join(os.getcwd(), 'utils', 'popularity', 'subset.pkl')
+    ALLMODELINFO = os.path.join(os.getcwd(), 'everything', 'models')
+    ROSTER = os.path.join(os.getcwd(), 'roster.csv')
 
     CONTROLNET = args.controlnet
 
