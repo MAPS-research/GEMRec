@@ -36,7 +36,7 @@ We provide a script for converting models from civitai to diffusers, enhanced fr
 cd utils/civitai2diffusers
 python3 convert.py --model_version_id 00000
 ```
-Replace `00000` with the modelVersion_id you want to convert. You can find the modelVersion_id on [Civitai](https://civitai.com/) or from its [api](https://github.com/civitai/civitai/wiki/REST-API-Reference)\
+Replace `00000` with the modelVersion_id you want to convert. You can find the modelVersion_id on [Civitai](https://civitai.com/) or from its [api](https://github.com/civitai/civitai/wiki/REST-API-Reference)
 
 **Note: Remeber to put `v1-inference.yaml`, `v2-inference.yaml`, `v2-inference-v.yaml` under the same working directory as `convert.py` script**
 
