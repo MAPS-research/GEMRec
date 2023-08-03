@@ -20,12 +20,12 @@ Clone this ModelCoffer repo
 git clone https://github.com/MAPS-research/ModelCoffer.git
 ```
 
-### STEP2: Replicate our GemRec-18k dataset presented in our paper and our public dataset
+### STEP2: Replicate our GemRec-18k dataset presented in our paper（TODO: add arxiv link here)
 All models we used are registered in `./roster.csv`, and our prompts are stored in `./promptsets/promptset_v6.csv`. To replicate our GemRec-18k dataset, run
 ```
 python3 download_and_generate.py --sd --lr
 ```
-where --sd means generating with three default stable diffusion models, and --lr means generating with the remaining 197 models in `./roster.csv`. The generated images will be stored in `./generated/train`. It will take awail to download all models, and might break halfway due to civitai server error. Please be patient, and if the script breaks, just rerun it. Our script will skip the downloaded models and continue to download the rest.
+where --sd means generating with three default stable diffusion models, and --lr means generating with the remaining 197 models in `./roster.csv`. The generated images will be stored in `./generated/train`. It will take a while to download all models through civitai's official API, and might break halfway due to server error. Please be patient, and if the script breaks, try to rerun it. Our script will skip the downloaded models and continue to download the rest.
 
 ## Advanced Usage
 **Note that there will be some verbose printing in the terminal, which is for debugging purpose.**
