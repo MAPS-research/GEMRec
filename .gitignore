@@ -14,7 +14,7 @@ meta/
 tmp/
 feats/
 logs/
-everything/
+everything/models/
 legacy/
 
 # files
