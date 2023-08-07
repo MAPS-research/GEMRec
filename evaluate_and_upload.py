@@ -98,14 +98,14 @@ if __name__ == '__main__':
     
     # # upload generated images to hf dataset
     # dataset_promptbook = load_dataset('imagefolder', data_dir=DATASET_DIR, split='train')
-    # dataset_promptbook.push_to_hub("NYUSHPRP/GEMRec-ModelCofferPromptBook")
+    # dataset_promptbook.push_to_hub("NYUSHPRP/GEMRec-PromptBook")
 
     # dataset_metadata = dataset_metadata = dataset_promptbook.remove_columns(['image'])
-    # dataset_metadata.push_to_hub("NYUSHPRP/GEMRec-ModelCofferMetadata")
+    # dataset_metadata.push_to_hub("NYUSHPRP/GEMRec-Metadata")
 
     # # upload roster to hf dataset
     # roster = pd.read_csv('./roster.csv')
     # roster = Dataset.from_pandas(roster)
-    # roster.push_to_hub("NYUSHPRP/GEMRec-ModelCofferRoster", split='train')
+    # roster.push_to_hub("NYUSHPRP/GEMRec-Roster", split='train')
 
     # print('Upload complete')
