@@ -1,0 +1,201 @@
+tag,model_name,model_id,modelVersion_name,modelVersion_id,modelVersion_url,modelVersion_trainedWords,model_download_count,baseModel
+stable diffusion,stable-diffusion-v1,1000000,v1-4,1000004,https://huggingface.co/CompVis/stable-diffusion-v1-4,[''],609745,SD 1.4
+stable diffusion,stable-diffusion-v1,1000000,v1-5,1000005,https://huggingface.co/runwayml/stable-diffusion-v1-5,[''],2276475,SD 1.5
+stable diffusion,stable-diffusion-v2,2000000,v2-1,2000001,https://huggingface.co/stabilityai/stable-diffusion-2-1,[''],236096,SD 2.1
+female|woman|clothing|girls|iraq|arabic clothes|arabic style|baghdad,Arabic Abaya,91138,v1.0,97137,https://civitai.com/api/download/models/97137,[''],137,SD 1.5
+character,PRealistic VALight,91002,PRealistic VALight,96988,https://civitai.com/api/download/models/96988,[''],146,SD 1.5
+anime|hanfu|clothing,汉服,88891,v1.0,94589,https://civitai.com/api/download/models/94589,['hanfu'],173,SD 1.5
+anime|character|photorealistic,MiRAnimeFantasyV1.1.2,90886,AnimeFantasyV1.1.2,96854,https://civitai.com/api/download/models/96854,[''],140,SD 1.5
+style|2.5d,EN-11,90835,v1.0,96798,https://civitai.com/api/download/models/96798,[''],200,SD 1.5
+style,franlcalico 6000,86618,v3 6000 model,96392,https://civitai.com/api/download/models/96392,['Evang'],240,Other
+style,DarkToon,91295,v1.0,97291,https://civitai.com/api/download/models/97291,[''],293,SD 1.5
+anime|character|female|fantasy,Mix Anime Fantasy V1.0,90366,Mix Anime Fantasy 1,96238,https://civitai.com/api/download/models/96238,[''],205,SD 1.5
+photorealistic|surrealism|scifi|base model|drippy|mech|food|woman|man|photorealism|color|foodporn,OMNI,68240,v1.0,72925,https://civitai.com/api/download/models/72925,"[' LIQUID SPLASH,BRTDRPP,Fruitfusion']",272,SD 1.5
+character|woman|girls,BeautifulFantasyKoreaMix,97566,v1.0,104299,https://civitai.com/api/download/models/104299,['ys'],155,SD 1.5
+character|chinese boy|chinese male|wuxia|dorama|刺客列传|zhong kunyi|仲堃仪|men with swords,Zhong Kunyi 仲堃仪 ,84039,v1.0,89317,https://civitai.com/api/download/models/89317,['photo of zky zhong kunyi'],35,SD 1.5
+character,pact with whitch,52677,v1.0,57073,https://civitai.com/api/download/models/57073,['poggers'],35,SD 1.5
+politician|celebrity|quebec,SDQC : Dominique Anglade - Chefs 2022 Quebec,59728,v1.0,64178,https://civitai.com/api/download/models/64178,['doang woman'],40,SD 1.5
+energy|style|adonis,djz Energy Adonis,23767,v21,28392,https://civitai.com/api/download/models/28392,['energyadonis'],51,SD 2.1 768
+celebrity|real person|muppet|groen links|jesse klaver,"Jesse Klaver Groen Links ""Muppet""",18689,v1,22175,https://civitai.com/api/download/models/22175,['jsklr'],45,SD 1.5
+chess,CEO unitgen,4595,v1(test),5238,https://civitai.com/api/download/models/5238,['sks chessevolved'],48,SD 1.5
+style,Garcia 10000 model,88508,v3 Safetenser ,96350,https://civitai.com/api/download/models/96350,['Evang'],298,Other
+anime|sharp focus|masterpiece|portraits,KaelvinSmix,1956,KaelvinSmix v2,3787,https://civitai.com/api/download/models/3787,[''],2154,Other
+neon|style|citadel|djz,djz Neon Citadel,26783,v21,32057,https://civitai.com/api/download/models/32057,['neoncitadel'],63,SD 2.1 768
+woman|celebrity,MJimenez,51356,v2.0,55935,https://civitai.com/api/download/models/55935,['mjimenez'],43,SD 1.5
+style,zhidiao,77122,v1.0,81908,https://civitai.com/api/download/models/81908,['zhidiao'],215,Other
+niji|style,Ahh,54832,v1.0,59208,https://civitai.com/api/download/models/59208,"['aptic,zgambuf']",167,SD 2.1 768
+anime|base model,DuskTideMix 暮潮,61463,v1.0,65952,https://civitai.com/api/download/models/65952,[''],1960,SD 1.5
+style|senpai|gasmask,djz Gasmask Senpai,22272,v21,26594,https://civitai.com/api/download/models/26594,['gasmasksenpai'],53,SD 2.1 768
+sexy|model|woman|beautiful|celebrity|girls,Bethany Lily ,56406,bethany-woman-4413-beth,60821,https://civitai.com/api/download/models/60821,['beth woman'],66,SD 1.5
+character|girl|female|digital art|highly detailed|for the artists|art style|woman|illustration|1980s|artistic|beautiful|cartoon|digital illustration|girls|vivid colors|women,1980s Aesthetic (Jem and the Holograms),7098,1.0,8343,https://civitai.com/api/download/models/8343,"[' duskgem,jem and the holograms']",114,SD 1.5
+character|photorealistic|girls|realistic,donGmiXX_realistic,72745,v1.0,77467,https://civitai.com/api/download/models/77467,[''],2022,SD 1.5
+sunset|style|djz|arizona,djz Arizona Sunset,26704,v21,31961,https://civitai.com/api/download/models/31961,['arizonasunset'],39,SD 2.1 768
+lineart|black and white|greyscale|monochrome|style,djz Monochrome V21,3688,0,4073,https://civitai.com/api/download/models/4073,['monochrome'],149,SD 2.1 768
+person,Jerma985,3791,jerma,4200,https://civitai.com/api/download/models/4200,['germy'],83,SD 1.5
+prompt|eater|consistent character|style,djz Prompt Eater V21,3731,0,4117,https://civitai.com/api/download/models/4117,['PromptEater'],97,SD 2.1 768
+anime|female|style,luvletter,92659,v1.0,98775,https://civitai.com/api/download/models/98775,['safe word'],125,SD 1.5
+santas|santa claus|style,Ornamental Santa Diffusion ,1655,Merged version: AnythingV3 and MoDi Diffusion,1803,https://civitai.com/api/download/models/1803,"['orna santa,white hair,golden eyes,beautiful eyes,detail,flower meadow,cumulonimbus clouds,lighting,detailed sky,garden,modern disney style']",83,Other
+style|cloning|photonic,djz Photonic Cloning,22798,v21,27225,https://civitai.com/api/download/models/27225,['photoniccloning'],98,SD 2.1 768
+vehicle|saab|saab 900,Saab 900 coupe,83507,v1.0,88756,https://civitai.com/api/download/models/88756,['saab'],71,Other
+character|glasses|illustration|girls,hiro_ku1394glasses,65881,v1.0,70538,https://civitai.com/api/download/models/70538,[''],81,SD 1.5
+girl|base model,Replicant-V3.0,10701,v3.0,75540,https://civitai.com/api/download/models/75540,['girl'],4077,SD 2.1 768
+character|guy|man,Modelguy,56471,v1.0,60891,https://civitai.com/api/download/models/60891,['David'],67,SD 1.5
+anime|character,Mymix,52193,Mymix-A.v3.0,94622,https://civitai.com/api/download/models/94622,[''],6191,SD 1.5
+photorealistic|celebrity|male|german|drachenlord,Winkler Diffusion / Drachenlord / Rainer Winkler,27767,v1,33248,https://civitai.com/api/download/models/33248,['rainerwinkler'],101,SD 1.5
+concept art|style|digital illustration|painterly,fantasy-art-style,3164,fantasy-art-style-v2-0,23286,https://civitai.com/api/download/models/23286,['dbfantasyart'],4324,SD 1.5
+girl|disney|3d|digital art|3d render|pixar|style|art style|woman|artstyle|cartoon|digital illustration|faces|male|man|portraits|toon,Pixar Style Model,15773,v1.0,18617,https://civitai.com/api/download/models/18617,['pixarstyle'],7734,SD 1.5
+anime|character|girls,Unlimited Replicant,97085,v1.0,103752,https://civitai.com/api/download/models/103752,"['masterpiece,anime,1girl']",191,SD 2.1 768
+anime|female|colorful|style|art style|woman|game character|girls|portraits|video game,chosen Irises-mix,60196,chosen Irises-mix v1.0,64674,https://civitai.com/api/download/models/64674,[''],1173,SD 1.5
+style|robot|wars,djz Robot Wars,23842,v21,28491,https://civitai.com/api/download/models/28491,['robotwars'],171,SD 2.1 768
+base model|wwa,ColbyMix,87734,v1.0,93375,https://civitai.com/api/download/models/93375,[''],167,SD 1.5
+anime|photorealistic|sexy|female|base model|woman|girls|realistic|semirealistic,azaleablossomMIX -original-,48757,V1,53336,https://civitai.com/api/download/models/53336,[''],966,SD 1.5
+anime|sexy|female|style|woman|girls|portraits|landscape|2.5d,siiNCeysMix-V2 Renewed,92661,v2.0,98778,https://civitai.com/api/download/models/98778,[''],996,SD 1.5
+anime|female|style|woman|artstyle|girls,BluePastel,32333,V1,38765,https://civitai.com/api/download/models/38765,[''],1375,SD 1.5
+style,dvPortrait,24348,dvPortrait v1.0: Women,29106,https://civitai.com/api/download/models/29106,['dvportrait'],374,SD 2.1
+character|kbtit|takuya,AITakuya,42134,v1.0,46824,https://civitai.com/api/download/models/46824,"['best quality,sksTakuya']",64,SD 1.5
+anime|vibrant colors,Vima Model,6399,vima-v1-3k,7514,https://civitai.com/api/download/models/7514,['by vima'],105,SD 1.5
+anime|base model|western|clay mann,Nothing Clay Mann,91533,v1.0,97562,https://civitai.com/api/download/models/97562,['Clay Mann'],316,SD 1.5
+art style,DMMID Style,14609,MODEL,17207,https://civitai.com/api/download/models/17207,['dmmid style'],766,SD 1.5
+classic|animation|western art|american|base model|cartoon,Cartoon Style Classic,33030,V1,39386,https://civitai.com/api/download/models/39386,"['looney tunes style,disney style,classic animation style']",1164,SD 1.5
+comic book|landscapes|all in one|intricate|pareidolia|wilfred lee|artists journey|original artist|style|art style,Pareidolia Gateway,1242,V1,1315,https://civitai.com/api/download/models/1315,['sks place'],869,SD 1.5
+nature|background|landscape|backgrounds,kaodiiLandscapeMix - night,94097,v1.0,100378,https://civitai.com/api/download/models/100378,[''],357,SD 1.5
+anime|aesthetic|base model|2.5d,majicMIX reverie,65055,v1.0,69687,https://civitai.com/api/download/models/69687,[''],8976,SD 1.5
+anime|base model|art style,Chaos3.0,91534,v1.0,97557,https://civitai.com/api/download/models/97557,[''],478,SD 1.5
+character|photorealistic|girls,LOFA_RealMIX,97203,v1.0,103879,https://civitai.com/api/download/models/103879,[''],197,SD 1.5
+anime|base model|woman,Waifu Diffusion - Beta 03,66705,Beta 3,71346,https://civitai.com/api/download/models/71346,[''],412,SD 2.1 768
+anime|style|art style|cartoon|fantasy,Yu-Gi-Oh! Cardfus,6357,1.0,7459,https://civitai.com/api/download/models/7459,"['official art,yu-gi-oh!']",95,Other
+celebrity|real person|mark rutte|vvd|muppet,"Mark Rutte VVD ""Muppet Minister"" ",18576,v1,22038,https://civitai.com/api/download/models/22038,['mrkrut'],63,SD 1.5
+style|roleplaying games|rpg,AllOldRPGArtS1_1990s,9928,AllOldRPGArtS1_1990s 1.01,11797,https://civitai.com/api/download/models/11797,['alloldrpgarts1'],218,SD 1.5
+anime|character|photorealistic|female|miniatures|paradise|photo|all|art style|woman|illustration|beautiful|game character|photography|portraits|realistic|real person,MMixRealisticA1,54588,v1.5 ,58955,https://civitai.com/api/download/models/58955,[''],139,Other
+character|girls|realistic|characters,KawaharaV1,63132,v1.0,67658,https://civitai.com/api/download/models/67658,['kawahara'],159,SD 1.5
+photorealistic|concept|photography|realistic,HSPU,4067,HSPU 1.1,4553,https://civitai.com/api/download/models/4553,[''],1858,SD 1.4
+photorealistic|buildings|woman|建筑|风格|室内|插画,通用性：建筑/室内/人物  Mr_Mc_Fanyong_V15_1.2,72883,Mr_Mc_Fanyong_V15_1.2,94326,https://civitai.com/api/download/models/94326,[''],1048,SD 1.5
+2.5d,Chrysanthemum Mix,38636,v1.0,44553,https://civitai.com/api/download/models/44553,[''],1503,SD 1.5
+base model|realistic,CampurSari,77451,Gen-1,82235,https://civitai.com/api/download/models/82235,[''],1127,SD 1.5
+photorealistic|female|art|realism|style|woman|fantasy|realistic|limitless,DestinyFantasy,34763,v2.0,104239,https://civitai.com/api/download/models/104239,[''],1152,SD 1.5
+anime|3d|sexy|female|meme|animated|vivid|base model|2dn|duskfall portal crew art style|detail eye|nudes|maplesyrup|woman|illustration|2d|girls|vibrant|vivid colors|large breasts|crazy eyes|crazy face|syrup|2.5d|osenayan mix,Identity Disorder (NSFW SUPPORT),30203,2.0,61088,https://civitai.com/api/download/models/61088,[''],1246,SD 1.5
+anime,donko-mix,7010,v2.0,93395,https://civitai.com/api/download/models/93395,[''],1361,SD 1.5
+landscapes|animals|forest|mountains|lakes|pacific northwest|pnw|background,dv PNW,3834,v1,4250,https://civitai.com/api/download/models/4250,['dvPNW'],740,SD 1.5
+vector|aesthetic|style|vector art|filter,Basil Korea 2DFilter,46060,v1.0,50677,https://civitai.com/api/download/models/50677,[''],825,SD 1.5
+animals|cats|pet,MeloTheCat,9827,v2,11674,https://civitai.com/api/download/models/11674,['mloctst'],573,SD 1.5
+anime|style,DiaMix,75949,v2.0,87747,https://civitai.com/api/download/models/87747,[''],837,SD 1.5
+photorealistic|photo|woman|girls|realistic,PhotoSensitive,69681,v1.0,74341,https://civitai.com/api/download/models/74341,[''],158,SD 1.5
+anime|female|style|girls,Based66,61643,v3.0,67841,https://civitai.com/api/download/models/67841,[''],1498,SD 1.5
+anime|boy|base model|portrait|guy|illustration|2d|fantasy|male|man,WolfBoys_2D,45092,v2.0,68509,https://civitai.com/api/download/models/68509,[''],2907,SD 1.5
+art|base model|portrait|realistic|landscape,LS Veritas,83864,v1.0,89138,https://civitai.com/api/download/models/89138,[''],119,SD 1.5
+photo|style|realistic,caulkinumV1_S series for Realistic Style,45689,SJA,100677,https://civitai.com/api/download/models/100677,[''],2840,SD 1.5
+anime|landscapes|creatures|final fantasy|architecture|ffix|style|woman|men|video game,effeffIX Concept Diffusion ,2294,Main,2485,https://civitai.com/api/download/models/2485,"['effeff9 woman,effeff9 man,effeff9 creature,effeff9 architecture']",240,Other
+kratos|god of war|video game,Kratos,8799,1.0,10388,https://civitai.com/api/download/models/10388,['kratos person'],115,Other
+base model,Chillmixreal,64481,v1.0,69089,https://civitai.com/api/download/models/69089,[''],289,SD 1.5
+style|artstyle,Garland Style (花环风格),60884,v1.1,82447,https://civitai.com/api/download/models/82447,[''],384,Other
+anime|character|2d|girls|characters|styles|hello,hello2DAnime,94328,hello2DAnime_v1.0,100625,https://civitai.com/api/download/models/100625,[''],439,SD 1.5
+oil painting|style|illustration|brushstroke,Impressionism (Oil painting),28068,SD1.5,74821,https://civitai.com/api/download/models/74821,['a painting by mse'],3183,SD 1.5
+anime|landscapes|girl|animation|korean woman|woman,sd-anireal-v2.8,14340,v2.8,16881,https://civitai.com/api/download/models/16881,[''],289,SD 1.5
+ink|sama|style|fantasy,djz Ink Sama Fantasy V21,4004,0,4455,https://civitai.com/api/download/models/4455,['InkSamaFantasy'],151,SD 2.1 768
+landscapes|3d|general purpose|digital art|hyperrealism|style|art style|illustration|digital illustration|fantasy|portraits,Diabolique Merges,20825,NOISE OFFSET v2,41048,https://civitai.com/api/download/models/41048,[''],3887,SD 1.5
+landscapes|nature|fantasy art|scenery|games|fantasy,Fantasy Background,5536,v1.0_pruned_fp16,6449,https://civitai.com/api/download/models/6449,[''],3177,SD 1.5
+style|robotics|scuffed,djz Scuffed Robotics,22940,v21,27386,https://civitai.com/api/download/models/27386,['scuffedrobotics'],452,SD 2.1 768
+anime|style,GOTTA MIX,69377,2ndmix,94956,https://civitai.com/api/download/models/94956,[''],3501,SD 1.5
+anime|girl|style|art style|artist|artstyle|weri,Weri Diffusion,12728,v1.0,14998,https://civitai.com/api/download/models/14998,['weriart style'],169,Other
+space|liminal space|style|liminal,djz Liminal Space,22804,v21,27232,https://civitai.com/api/download/models/27232,['liminalspace'],344,SD 2.1 768
+character,cutesmallv4,88106,v4,93768,https://civitai.com/api/download/models/93768,[''],452,Other
+photorealistic|female|base model|girls|realistic,CyberDream | CNrealistic_MIXv11,88855,v11,94544,https://civitai.com/api/download/models/94544,[''],643,SD 1.5
+anime|style,SiO2  二氧化硅,89907,v1.2,95743,https://civitai.com/api/download/models/95743,[''],514,SD 1.5
+anime|character|person|sexy|female|art style|woman|illustration|game character|girls|portraits|video game,3D_Mix_Character,94726,Version 1.0,101038,https://civitai.com/api/download/models/101038,[''],567,SD 1.5
+container|snow globe|spheres|style,Snow Globe,1145,v1,1165,https://civitai.com/api/download/models/1165,['mj-sphere'],511,SD 1.5
+photorealistic|nature|style|food|woman|cars|men|archviz,ReaDiff (Realistic Diffusion),59941,v1.0,64400,https://civitai.com/api/download/models/64400,[''],648,SD 1.5
+knights|cybernetic|ascendents|style|armor|sci fi,djz Ascendent Knights V21 & V15,3960,V21-768,4409,https://civitai.com/api/download/models/4409,['ascendentknights'],146,SD 2.1 768
+anime|character|model|fantasy|semi-realistic,Butterscotch Mix,16213,v1.0,19149,https://civitai.com/api/download/models/19149,[''],416,SD 1.5
+style|video game,Final Fantasy VII Remake,1252,5.1,1327,https://civitai.com/api/download/models/1327,"['Tifa Lockhart,Cloud Strife,Barret Wallace,aerith gainsborough,midgar city,midgar city business district,midgar city slums district,biggs ff7r,wedge ff7r,jessie rasberry,inside seventh heaven bar,shinra security officer,in the style of midgar city']",355,SD 1.5
+anime|animals|person|concept|conceptual|character，,AnimeHP,70520,AnimeHP v1.0,75186,https://civitai.com/api/download/models/75186,[''],416,SD 1.5
+anime|monsters|game art|atlus|persona|shin megami tensei|demons|style|artstyle|video game,金子一馬　kazuma_kaneko_human-shape_demon_design_2000s_style,19418,v.1.0,23048,https://civitai.com/api/download/models/23048,['kazuma_kaneko'],356,SD 1.4
+anime|boy|portaits|female|base model|woman|illustration|girls|male|man,Cool Mix,63455,v1.0,68006,https://civitai.com/api/download/models/68006,[''],508,SD 1.5
+style|styl,anime2.1,58798,v1.5,66018,https://civitai.com/api/download/models/66018,[''],393,SD 2.1 768
+female|base model|woman|girls|realistic,DivasRev,80311,v1.0,85140,https://civitai.com/api/download/models/85140,[''],142,SD 1.5
+anime|character|woman|cartoon|cartoonish,VirtueMix v0.1,59456,v0.1,63911,https://civitai.com/api/download/models/63911,[''],370,SD 1.5
+anime|landscapes|photorealistic|digital art|cyberpunk|character art|concept art|model|fantasy art|style|illustration|artistic|cinematic|photorealism|realistic|video game,DayBreak Diffusion,11627,DBD1.0,15124,https://civitai.com/api/download/models/15124,[''],603,SD 1.5
+style,Q style,88647,v1.0,94335,https://civitai.com/api/download/models/94335,['q style'],259,Other
+person|photorealistic|female|youtuber|asian|dancer|woman|celebrity|girls|korean|portraits|realistic|pose|korean girl|dance|korean model|youtube|asian girl|kpop girl|ari|waveya|asian woman|koreangirl|twerk|koreanmodel|jangeunyoung,Ari WAVEYA,25184,v2,96398,https://civitai.com/api/download/models/96398,['JangEunYoung'],328,SD 1.5
+character|girls|characters|color,Ishizuka,62419,v1.0,66973,https://civitai.com/api/download/models/66973,['ishizuka'],204,SD 1.5
+anime|cute|sprout,meng,24422,meng+shadow,29202,https://civitai.com/api/download/models/29202,[''],332,Other
+character|star trek|scifi|portrait|multi-character|1990s|sci fi|deep space nine,Terok Nor (2.1),26458,3.20,31679,https://civitai.com/api/download/models/31679,['sdn'],288,SD 2.1 768
+subject|pepe|meme,Pepe style,1129,v2,1145,https://civitai.com/api/download/models/1145,['pepestyle person'],225,SD 1.5
+character|digital art|woman|illustration|fantasy|semi-realistic,RPGmix,21343,RPGMix V1.0,25406,https://civitai.com/api/download/models/25406,"['pixarstyle ,fantasy,rpg']",344,SD 1.5
+anime|colorful|base model|scenery|illustration|portraits|characters|semirealistic|backgrounds|wallpaer,SoteMix,72182,v1.0,76933,https://civitai.com/api/download/models/76933,[''],428,SD 1.5
+anime|character|sexy|illustration|fantasy|girls,Aerial,90576,Aerial_v0,96495,https://civitai.com/api/download/models/96495,[''],318,SD 1.5
+anime|base model|realistic,KheyouMix [1b8b712d80],5181,KheyouMix [1b8b712d80],6011,https://civitai.com/api/download/models/6011,[''],225,SD 1.5
+character|photorealistic|female|analog|portrait|nsfw,Apollo,46443,v1.0,51069,https://civitai.com/api/download/models/51069,[''],380,SD 1.5
+anime|character|photorealistic|female|cosplay|cg|woman|game character|realistic,4MOON_Cosplay,47856,v1,52446,https://civitai.com/api/download/models/52446,[''],458,SD 1.5
+anime|base model,CyanohydrinMix,83641,V4,96609,https://civitai.com/api/download/models/96609,[''],745,SD 1.5
+person|photorealistic|sexy|female|nude|character art|realism|base model|woman|cute|girls|male|photography|realistic|characters|lovely|beautiful girl|cute girl|beautiful face|human|nude model|beautiful eyes|beautiful visuals|basemodel|styles|realistic style,Model Mix_Test Version,87554,ModelMixTest,93174,https://civitai.com/api/download/models/93174,[''],299,SD 1.5
+anime|base model|flat colors|2d,OctoMix,22213,Octomix,26518,https://civitai.com/api/download/models/26518,[''],374,SD 1.5
+female|style|woman,Hyper & Love Journey,30598,lvejour,36939,https://civitai.com/api/download/models/36939,"['hyperstyle, art by mandy jurgens, oil painting, realistic:1.8']",259,SD 1.5
+anime|girl|style,Realgar-v1.0,70713,v1.0,75396,https://civitai.com/api/download/models/75396,[''],221,SD 2.1 768
+photorealistic|base model|realistic|lora,Lora Lover (Realistic),91478,v1.0,97490,https://civitai.com/api/download/models/97490,[''],489,SD 1.5
+borderlands|female|borderlands 3|cel shaded|style|video game,Borderlands 3 Character Diffusion (with female only variant),2069,Borderlands-3-Character-Diffusion-v1,2216,https://civitai.com/api/download/models/2216,"['stbtc,stbcf']",281,SD 1.5
+anime|photorealistic|sexy|concept|woman|game character|girls|portraits|video game,AmB3R,57209,v1.0,61620,https://civitai.com/api/download/models/61620,[''],364,SD 1.5
+anime|base model|skinny|pastel,Macchiato pastel mix,90765,v1.0,96706,https://civitai.com/api/download/models/96706,[''],591,SD 1.5
+statue|consistent character|divine|style,djz Divine Statue V21,3698,0,4083,https://civitai.com/api/download/models/4083,['DivineStatue'],238,SD 2.1 768
+3d|base model|monkren,MonkRen 3d Cartoon,73731,v1.0,78441,https://civitai.com/api/download/models/78441,[''],398,SD 1.5
+anime,mochizuki kei Model,4459,mochizukikei-v1-15k,5046,https://civitai.com/api/download/models/5046,['by mochizuki kei'],222,SD 1.5
+anime|female|colorful|base model|illustration|gradient,PocketNoise,82466,Beta,97059,https://civitai.com/api/download/models/97059,[''],521,SD 1.5
+anime|colorful|vivid,Noilla,24074,v3.0,44428,https://civitai.com/api/download/models/44428,[''],249,SD 1.5
+anime|sexy|style,JOEY,88169,v1.0,93830,https://civitai.com/api/download/models/93830,[''],285,SD 1.5
+anime|landscape|semi-realism|ct|ct_v1|ctv1|ctm|ct-m,CT,76497,CTM,96097,https://civitai.com/api/download/models/96097,[''],612,SD 1.5
+abstract|surrealism|weird|game art|sci-fi|style|food|woman|game character|realistic|video game|semi-realism,🌈🧬🍭🍄👁️ Agartha 👁️🍄🍭🧬🌈(ChadStyle),69808,v1.0,74470,https://civitai.com/api/download/models/74470,"['GOOSEBUMPS ART BY TIM JACOBUS,RAINBOWPATCH,FOOD_CRIT,TK-CHAR,TK-ENV,LIQUID SPLASH,PAPERCUT,PORCELAIN DOLL,artificial-journey style,SURREALISM,COLORFULSURREALISMAI,CARBON,DUOCHROME,HOLOGRAPHIC, in OliDisco style,FLAT COLOR,FLAT ILLUSTRATION,VECTORSTYLE,MECHA']",588,SD 1.5
+anime|landscapes|abstract|base model|stylized|illustration|characters,Stoked Illustration,81959,v1.1,96764,https://civitai.com/api/download/models/96764,[''],619,SD 1.5
+style,extra anime,91076,v1.0,97070,https://civitai.com/api/download/models/97070,[''],547,SD 1.5
+photorealistic|base model|realistic,chillyMixBase,75706,chillymixbase V1-NED,96882,https://civitai.com/api/download/models/96882,[''],521,SD 1.5
+character|photorealistic|female|woman|game character,MDRealisticV1.0,68946,MDRealisticV1.2,97526,https://civitai.com/api/download/models/97526,[''],675,SD 1.5
+anime|character|photorealistic|sexy|female|woman|girls,BBMIX-JUDE,91213,v1.0,97212,https://civitai.com/api/download/models/97212,"['masterpiece,best quality']",588,SD 1.5
+scifi|fantasy|line|characters,BrickAndMortarMix,83867,v2.0,97124,https://civitai.com/api/download/models/97124,[''],1225,SD 1.5
+anime|person|female|art|style|art style|woman|game character|portraits|video game,pixel XL,90507,v1.0,96488,https://civitai.com/api/download/models/96488,['pixel art'],958,SD 1.5
+anime|style,tangbohu 2D mix,43747,06178,97547,https://civitai.com/api/download/models/97547,[''],1090,SD 1.5
+anime|style|comic,23511-1546-幻色石,63279,23616-1115-test,97006,https://civitai.com/api/download/models/97006,[''],1104,SD 1.5
+anime|character|sexy|girls|characters|hello,hellopure,88202,hellopure_v2.16,96270,https://civitai.com/api/download/models/96270,[''],1117,SD 1.5
+photorealistic|female|base model|realistic,blue_pencil_realistic,88941,v0.5,97200,https://civitai.com/api/download/models/97200,[''],1370,SD 1.5
+anime|art style|illustration,小插画-little illustration,15250,23615-1435,96373,https://civitai.com/api/download/models/96373,[''],1410,SD 1.5
+anime|base model|woman|illustration|cute|girls|2.5d,ANC-Mix,59331,v3.0,97532,https://civitai.com/api/download/models/97532,[''],1032,SD 1.5
+"3d|person|photorealistic|mix|base model|model|photo|woman|realistic|girl,",mutsuki_mix,45614,v2,96258,https://civitai.com/api/download/models/96258,[''],2141,SD 1.5
+anime|style|art style|illustration|artstyle|girls,咸鱼大涂抹-The old fish Spread,14462,23615-1417,96386,https://civitai.com/api/download/models/96386,[''],1807,SD 1.5
+base model,Am I Perfection,86350,V2.0,96775,https://civitai.com/api/download/models/96775,[''],1604,SD 1.5
+anime|pastel|style|paint|woman,Epic Mix - V2,32127,1.5,96458,https://civitai.com/api/download/models/96458,[''],1453,SD 1.5
+base model,T-anime-v3 (pruned),69552,v3.0,97399,https://civitai.com/api/download/models/97399,[''],2317,SD 1.5
+photorealistic|sexy|base model|girls|realistic|european girl|nsfw,Kawaii Realistic European Mix,90694,v0.1,96638,https://civitai.com/api/download/models/96638,[''],2268,SD 1.5
+creatures|base model|flexible|fantasy|realistic|creativity,ChimeraMix,24728,v4,97393,https://civitai.com/api/download/models/97393,[''],2933,SD 1.5
+portaits|sexy|female|western art|scifi|fantasy art|style|art style|woman|digital illustration|fantasy|girls|comic|nsfw|ilustation|comics style|western anime,OccidentalMix,63920,v2.0,97123,https://civitai.com/api/download/models/97123,[''],3853,SD 1.5
+photorealistic|base model|woman|girls|japanese|realistic|character，|checkpoint|basemodel,yayoi_mix,83096,v1.31,96244,https://civitai.com/api/download/models/96244,[''],3682,SD 1.5
+anime|concept|monster girl,IdentityCrisis,89075,EroDemonMix_0.3ws,96319,https://civitai.com/api/download/models/96319,"['anthro,monster girl,colored skin,furry']",2537,SD 1.5
+anime|sexy|manga|base model|pastel|{vivid colors}|woman|2d|game character|video game|vivid colors|2.5d|1girl|merge|husbando,Epic Mix - V4,27096,Ani-V2,96454,https://civitai.com/api/download/models/96454,[''],5410,SD 1.5
+base model|flexible|fantasy|portraits|realistic,WyvernMix,5273,v9,96912,https://civitai.com/api/download/models/96912,[''],8391,SD 1.5
+photorealistic|sexy|female|portrait|style|woman|realistic|landscape,Pirsus Epic Realism,56383,v2.1,96535,https://civitai.com/api/download/models/96535,[''],14669,SD 1.5
+3d|person|photorealistic|mix|base model|model|photo|woman|girls|japanese|realistic|girl，,kisaragi_mix,45757,v2.2,97186,https://civitai.com/api/download/models/97186,[''],12011,SD 1.5
+sexy|female|style|woman|fantasy|realistic|nsfw|2.5d,Meichidark_Mix,69158,Meichidark_MIX_3.8,97047,https://civitai.com/api/download/models/97047,[''],17840,SD 1.5
+anime|style|art style|illustration|artstyle,啥玩意完犊子（大概是一种古早画风）- old fish,14978,23615-1438,96369,https://civitai.com/api/download/models/96369,[''],20847,SD 1.5
+girl|base model|art style|woman|beautiful|fantasy|1boy|1girl|1man|1guy,Lyriel,22922,v1.6,72396,https://civitai.com/api/download/models/72396,[''],79621,SD 1.5
+girl|photorealistic|female|highly detailed|base model|beautiful|male|photorealism|realistic,CyberRealistic ,15003,v3.1,89680,https://civitai.com/api/download/models/89680,[''],102076,SD 1.5
+character|photorealistic|anatomical|cgi|realistic|semi-realistic,Realistic Vision V2.0,4201,V2.0 (no VAE),29460,https://civitai.com/api/download/models/29460,"['analog style,modelshoot style,nsfw,nudity']",245694,SD 1.5
+psychedelic|style,Nouvis psychedelic model,1308,1.5,1392,https://civitai.com/api/download/models/1392,[''],263,SD 1.5
+anime|landscapes|pre-rendered backgrounds|sunset|vaporwave|background,Anime Backgrounds,6417,1.0,7536,https://civitai.com/api/download/models/7536,['bganidusk'],679,SD 1.5
+electronics|style|circuits|silicon|siliconpunk,djz Siliconpunk,7568,V21-768,8891,https://civitai.com/api/download/models/8891,['siliconpunk'],337,SD 2.1 768
+landscapes|concept|digital illustration|video game|tf2,This TF2 Map Does Not Exist,22487,v1,26849,https://civitai.com/api/download/models/26849,"['tf2map,team fortress 2,map,tf2 map']",135,SD 1.5
+anime,WaifuBodyBlender-Mix,1692,V1,1838,https://civitai.com/api/download/models/1838,[''],245,SD 1.5
+anime|character,Makise Kurisu -Character DBCP-,6647,Kurisu v1.0,7816,https://civitai.com/api/download/models/7816,"['kurisu,1girl']",92,Other
+paper|style,Midjourney Papercut,80,v1,90,https://civitai.com/api/download/models/90,['mdjrny-pprct'],5832,SD 1.5
+minimal|surrealism|base model,Eternos,1142,1.5-704,1162,https://civitai.com/api/download/models/1162,['romerorzeternos'],204,SD 1.5
+junglepunk|house|style,djz Junglepunk-House V21,4006,0,4457,https://civitai.com/api/download/models/4457,['Junglepunk-House'],106,SD 2.1 768
+base model|johnson|djz|zenkai|diffusion|jdz,Johnson Diffusion Zenkai,47355,Beta1,51948,https://civitai.com/api/download/models/51948,[''],490,SD 2.1 768
+abstract|digital art|style|painterly,Primeval Nova V2,4727,Primeval Nova V2,5408,https://civitai.com/api/download/models/5408,[''],397,SD 2.1 768
+style|dolphin|bit|djz,djz Bit Dolphin,26320,v21,31514,https://civitai.com/api/download/models/31514,['bitdolphin'],44,SD 2.1 768
+anime|base model,WaifuProtogen,3994,1,4443,https://civitai.com/api/download/models/4443,[''],170,SD 1.5
+renaissance|medieval|oil painting|style|painting|oil pastel|oil,DreamlabsOil_v2,50718,v2,55228,https://civitai.com/api/download/models/55228,"['oil painting style,oil painting']",1770,SD 1.5
+retro|style|game|retro gaming,Blade Runner // Retro Gaming,83265,v1.0,88482,https://civitai.com/api/download/models/88482,['p1xbladerunner'],93,SD 1.5
+mecha|games|roleplaying games|rpg,The Mechwarrior RPG Art 1990's,7402,The Mechwarrior RPG Art 1990'sThe Mechwarrior RPG Art 1990's V 1.0,8699,https://civitai.com/api/download/models/8699,['themechwarriorrpgart'],142,SD 1.5
+photorealistic|photo|style|easy,NextPhoto,84335,v2.0,100637,https://civitai.com/api/download/models/100637,"['A perfect photo,A poorly lit photo,A perfect closeup photo']",15328,SD 1.5
+sexy|babes|base model|thick lips|big lips|lips,Babes Kissable Lips,26566,1,31802,https://civitai.com/api/download/models/31802,"['samdoesart style,thepit style,orwel style,cherrymouse style']",1482,Other
+anime|base model,DonutHoleMix 甜甜圈,78433,v1.0,83231,https://civitai.com/api/download/models/83231,[''],3283,SD 1.5
+rrr|ram charan|actor|celebrity,Ram Charan (RRR),5665,V1,6590,https://civitai.com/api/download/models/6590,['sks person'],88,SD 1.5
+anime|orangecocoa|orange|yohan diffusion|cocoa|abyss|orangemix|corneo,OrangeCocoa 50/50 Mix,4355,1.1.0,4938,https://civitai.com/api/download/models/4938,[''],7629,SD 1.5
+anime|character|kiriko|d.va|brigitte|tracer|girls|overwatch|video game|women|mei,Esuna,46291,v2,51986,https://civitai.com/api/download/models/51986,[''],900,SD 1.5
+anime|female|style,GentleMix,74073,v1.0,78797,https://civitai.com/api/download/models/78797,[''],578,SD 1.5
+anime|style|artstyle,ClearVAE,22354,v2.3,88156,https://civitai.com/api/download/models/88156,[''],43134,SD 1.5
