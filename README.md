@@ -14,7 +14,7 @@ This is the official github repo for the paper [Towards Personalized Prompt-Mode
 - [GEMRec-Roster](https://huggingface.co/datasets/MAPS-research/GEMRec-Roster): The metadata for the 200 model checkpoints fetched from [Civitai](https://civitai.com/).
 
 #### Space
-- [GEMRec-Gallery](https://huggingface.co/spaces/MAPS-research/GEMRec-Gallery): Our web app for browsing and comparing the generated images. (To be released soon)
+- [GEMRec-Gallery](https://huggingface.co/spaces/MAPS-research/GEMRec-Gallery): Our demo app for GEMRec, which helps users identify useful models from a large corpus.
 
 ## Files & Directories
 
