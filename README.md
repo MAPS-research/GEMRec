@@ -1,6 +1,8 @@
 # GEMRec
 
-This is the official github repo for the paper [Towards Personalized Prompt-Model Retrieval for Generative Recommendation](https://arxiv.org/abs/2308.02205). We release the promptset and code for generating the GEMRec-18K dataset as well as the links to the corresponding dataset and space on HuggingFace. 
+**Update:** GEMRec is accepted by WSDM 2024 (Demo Track).
+
+This is the official github repo for the paper [GEMRec: Towards Generative Model Recommendation](https://arxiv.org/abs/2308.02205). We release the promptset and code for generating the GEMRec-18K dataset as well as the links to the corresponding dataset and space on HuggingFace.
 
 ## Dataset Intro
 
@@ -79,13 +81,13 @@ python evaluate_and_upload.py
 ```
 
 ## Acknowledgement
-This work was supported through NYU High Performance Computing resources, services, and staff expertise.
+This work is supported in part by Shanghai Frontiers Science Center of Artificial Intelligence and Deep Learning at NYU Shanghai, STCSM 23YF1430300, and NYU HPC resources.
 
 ## Citation
 If you find our work helpful, please consider cite it as follows:
 ```bibtex
-@article{guo2023towards,
-  title={Towards Personalized Prompt-Model Retrieval for Generative Recommendation},
+@article{guo2023gemrec,
+  title={GEMRec: Towards Generative Model Recommendation},
   author={Guo, Yuanhe and Liu, Haoming and Wen, Hongyi},
   journal={arXiv preprint arXiv:2308.02205},
   year={2023}
